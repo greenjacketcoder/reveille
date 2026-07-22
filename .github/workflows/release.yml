@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Not notarized yet (pending Apple Developer Program enrollment), so
+      # this is ad-hoc signed for now. Once a Developer ID cert exists, swap
+      # this step for real codesign + notarytool submission before packaging.
+      - name: Build (Release, ad-hoc signed)
+        run: |
+          xcodebuild build \
+            -project MacAlert.xcodeproj -scheme MacAlert -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=YES
+
+      - name: Read version from built app + verify it matches the tag
+        id: version
+        run: |
+          APP="build/Build/Products/Release/MacAlert.app"
+          SHORT=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")
+          BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Contents/Info.plist")
+          EXPECTED_TAG="v$SHORT"
+          if [ "$GITHUB_REF_NAME" != "$EXPECTED_TAG" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match MARKETING_VERSION $SHORT (expected tag $EXPECTED_TAG). Update the Xcode project version or use the matching tag."
+            exit 1
+          fi
+          echo "short=$SHORT" >> "$GITHUB_OUTPUT"
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+      - name: Package .dmg
+        run: |
+          mkdir -p staging
+          cp -R "build/Build/Products/Release/MacAlert.app" "staging/Reveille.app"
+          ln -s /Applications staging/Applications
+          hdiutil create -volname "Reveille" -srcfolder staging -ov -format UDZO \
+            "Reveille-${{ steps.version.outputs.short }}.dmg"
+
+      - name: Verify signature + disk image integrity
+        run: |
+          codesign --verify --deep --strict --verbose=2 "staging/Reveille.app"
+          hdiutil verify "Reveille-${{ steps.version.outputs.short }}.dmg"
+
+      - name: Download Sparkle CLI tools (pinned to the version this app embeds)
+        run: |
+          curl -fL -o sparkle-tools.tar.xz \
+            https://github.com/sparkle-project/Sparkle/releases/download/2.9.4/Sparkle-2.9.4.tar.xz
+          mkdir sparkle-tools
+          tar -xf sparkle-tools.tar.xz -C sparkle-tools
+      # The private key is never written to a file or logged; GitHub also
+      # automatically redacts any exact match of a registered secret in logs.
+      - name: Sign update with Sparkle (EdDSA)
+        id: sign
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          DMG="Reveille-${{ steps.version.outputs.short }}.dmg"
+          LENGTH=$(stat -f%z "$DMG")
+          SIGNATURE=$(echo "$SPARKLE_PRIVATE_KEY" | sparkle-tools/bin/sign_update --ed-key-file - -p "$DMG")
+          if [ -z "$SIGNATURE" ]; then
+            echo "::error::Sparkle signing produced no signature - check SPARKLE_PRIVATE_KEY secret"
+            exit 1
+          fi
+          echo "length=$LENGTH" >> "$GITHUB_OUTPUT"
+          echo "signature=$SIGNATURE" >> "$GITHUB_OUTPUT"
+
+      - name: Update appcast.xml
+        run: |
+          python3 scripts/update_appcast.py \
+            --version "${{ steps.version.outputs.short }}" \
+            --build "${{ steps.version.outputs.build }}" \
+            --length "${{ steps.sign.outputs.length }}" \
+            --signature "${{ steps.sign.outputs.signature }}" \
+            --url "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Reveille-${{ steps.version.outputs.short }}.dmg" \
+            --notes-url "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+
+      - name: Commit appcast.xml back to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appcast.xml
+          git commit -m "Release ${{ github.ref_name }}: update appcast.xml [skip ci]"
+          git push origin HEAD:main
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            "Reveille-${{ steps.version.outputs.short }}.dmg" \
+            --title "Reveille ${{ steps.version.outputs.short }}" \
+            --generate-notes
