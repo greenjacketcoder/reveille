@@ -1,0 +1,30 @@
+# Builds the Reveille Xcode project.
+# This project is an Xcode app target (MacAlert.xcodeproj), not a Swift
+# Package, so `swift build`/`swift test` won't work here — xcodebuild is
+# the correct tool for building and testing .xcodeproj-based targets.
+
+name: Swift
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Show available schemes (debug aid)
+      run: xcodebuild -list -project MacAlert.xcodeproj
+
+    - name: Build
+      run: |
+        xcodebuild build \
+          -project MacAlert.xcodeproj \
+          -scheme MacAlert \
+          -destination 'platform=macOS' \
+          CODE_SIGNING_ALLOWED=NO
