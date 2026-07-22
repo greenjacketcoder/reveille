@@ -106,7 +106,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "bell.fill", accessibilityDescription: "Reveille")
+            button.image = NSImage(named: "MenuBarIcon")
+            button.image?.accessibilityDescription = "Reveille"
             button.image?.isTemplate = true
         }
 
