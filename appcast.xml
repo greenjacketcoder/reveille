@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Reveille Changelog</title>
+        <link>https://raw.githubusercontent.com/greenjacketcoder/reveille/main/appcast.xml</link>
+        <description>Updates to Reveille, the free macOS meeting alert app.</description>
+        <language>en</language>
+
+        <!--
+        No releases yet. Add one <item> per version here once you cut a
+        signed, notarized .dmg release. Template:
+
+        <item>
+            <title>Version 1.0</title>
+            <sparkle:releaseNotesLink>
+                https://github.com/greenjacketcoder/reveille/releases/tag/v1.0
+            </sparkle:releaseNotesLink>
+            <pubDate>Wed, 22 Jul 2026 00:00:00 +0000</pubDate>
+            <enclosure
+                url="https://github.com/greenjacketcoder/reveille/releases/download/v1.0/Reveille-1.0.dmg"
+                sparkle:version="1"
+                sparkle:shortVersionString="1.0"
+                length="0"
+                type="application/octet-stream"
+                sparkle:edSignature="PASTE_OUTPUT_OF_sign_update_HERE"
+            />
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+        </item>
+
+        Notes:
+        - sparkle:version must match CFBundleVersion (CURRENT_PROJECT_VERSION)
+          of that build; sparkle:shortVersionString matches
+          CFBundleShortVersionString (MARKETING_VERSION).
+        - length is the .dmg file's byte size (`stat -f%z file.dmg`).
+        - sparkle:edSignature comes from running:
+            bin/sign_update /path/to/Reveille-1.0.dmg
+          using the private key already stored in this machine's Keychain
+          (generated via generate_keys). Never paste the private key itself
+          anywhere; only sign_update's signature output goes here.
+        - Newest release goes first (Sparkle reads top-down).
+        -->
+    </channel>
+</rss>
