@@ -57,9 +57,14 @@ class SettingsManager: ObservableObject {
 
 struct SettingsView: View {
     @ObservedObject var settings: SettingsManager
-    @State private var selectedTab = "general"
+    @State private var selectedTab: String
     @State private var newLinkName = ""
     @State private var newLinkURL = ""
+
+    init(settings: SettingsManager, initialTab: String = "general") {
+        self.settings = settings
+        self._selectedTab = State(initialValue: initialTab)
+    }
 
     let availableSounds = ["Ping", "Glass", "Submarine", "Hero", "Tink", "Pop", "Purr"]
 

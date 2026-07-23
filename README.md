@@ -10,6 +10,27 @@ A free, open-source macOS meeting reminder app — similar to Chime, but complet
 
 Reveille lives in your menu bar, watches your calendars, and puts a full-screen, impossible-to-ignore alert in front of you before each meeting.
 
+<p align="center">
+  <img src="docs/screenshots/meeting_alert.png" alt="Reveille full-screen meeting alert" width="700">
+</p>
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/reminder_alert.png" alt="Reminder alert"><br><sub>Reminder alert — complete, snooze, or open in Reminders.app</sub></td>
+<td width="50%"><img src="docs/screenshots/quickadd.png" alt="Quick Add Meeting"><br><sub>Quick Add Meeting, with duration presets and link auto-fill</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/prefs_general.png" alt="General settings"><br><sub>General — sync interval, alert timing</sub></td>
+<td width="50%"><img src="docs/screenshots/prefs_sounds.png" alt="Sounds settings"><br><sub>Sounds & Alerts — preview and volume</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/prefs_links.png" alt="Meeting Links settings"><br><sub>Meeting Links — save recurring rooms</sub></td>
+<td width="50%"><img src="docs/screenshots/prefs_calendars.png" alt="Calendars settings"><br><sub>Calendars — connections and sync notes</sub></td>
+</tr>
+</table>
+
 ## Features
 
 **Alerts**
