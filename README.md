@@ -93,6 +93,10 @@ Reveille is designed to be as private as a menu bar app can be:
 
 It's open source, so you don't have to take this on faith — `CalendarManager.swift` and `AppDelegate` show exactly what's read and what happens with it.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
 ## Contributing
 
 Issues and PRs are welcome — see the About tab in-app for quick links, or go straight to [Issues](https://github.com/greenjacketcoder/reveille/issues).
