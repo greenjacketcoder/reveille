@@ -22,6 +22,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var alertWindow: NSWindow?
     var settingsWindow: NSWindow?
     var quickEventWindow: NSWindow?
+    // Local monitor for the alert window's keyboard shortcuts. Using a
+    // monitor rather than relying on NSHostingController.keyDown, since
+    // SwiftUI's own view hierarchy can intercept key events at a lower
+    // level and never forward unhandled ones up the responder chain to
+    // the hosting view controller - this sidesteps that entirely by
+    // intercepting before normal AppKit dispatch happens.
+    var alertKeyMonitor: Any?
 
     // Sparkle's controller owns update checking, downloading, EdDSA signature
     // verification, and installation. `startingUpdater: true` means it begins
@@ -54,6 +61,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: UserDefaults.didChangeNotification,
             object: nil
         )
+
+        handleDebugScreenshotArgument()
+    }
+
+    /// Lets us pop open any window on demand for screenshotting/UX review,
+    /// without waiting on a real calendar event or clicking through the menu
+    /// bar. Launch with e.g. `--debug-screenshot=meeting-alert`. Not wired
+    /// into any shipped UI path.
+    private func handleDebugScreenshotArgument() {
+        guard let modeArg = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--debug-screenshot=") }) else {
+            return
+        }
+        let mode = modeArg.replacingOccurrences(of: "--debug-screenshot=", with: "")
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            let parts = mode.split(separator: ":", maxSplits: 1).map(String.init)
+            let base = parts.first ?? mode
+            let arg = parts.count > 1 ? parts[1] : nil
+
+            switch base {
+            case "preferences":
+                self.openPreferencesWindow(initialTab: arg ?? "general")
+            case "quickadd":
+                self.showQuickEvent()
+            case "meeting-alert":
+                let fakeEvent = EKEvent(eventStore: EKEventStore())
+                fakeEvent.title = "Product Sync"
+                fakeEvent.startDate = Date().addingTimeInterval(240)
+                fakeEvent.endDate = Date().addingTimeInterval(1800)
+                fakeEvent.location = "https://zoom.us/j/1234567890"
+                fakeEvent.notes = "Weekly product sync with the team."
+                self.showAlert(for: fakeEvent)
+            case "reminder-alert":
+                let fakeReminder = EKReminder(eventStore: EKEventStore())
+                fakeReminder.title = "Follow up with client"
+                self.showReminderAlert(for: fakeReminder)
+            default:
+                break
+            }
+        }
     }
 
     private func requestCalendarAccess() {
@@ -226,6 +273,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.activate(ignoringOtherApps: true)
 
             self.alertWindow = window
+            self.installAlertKeyMonitor { [weak self] keyCode, chars in
+                guard let self = self else { return false }
+                switch keyCode {
+                case 36, 76: // Return / keypad Enter
+                    self.handleAlertAction(.join, for: event)
+                    return true
+                case 53: // Escape
+                    self.handleAlertAction(.dismiss, for: event)
+                    return true
+                default:
+                    break
+                }
+                if chars?.lowercased() == "s" {
+                    self.handleAlertAction(.snooze, for: event)
+                    return true
+                }
+                return false
+            }
         }
     }
 
@@ -261,6 +326,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.activate(ignoringOtherApps: true)
 
             self.alertWindow = window
+            self.installAlertKeyMonitor { [weak self] keyCode, chars in
+                guard let self = self else { return false }
+                switch keyCode {
+                case 36, 76: // Return / keypad Enter -> complete
+                    self.handleReminderAction(.complete, for: reminder)
+                    return true
+                case 53: // Escape
+                    self.handleReminderAction(.dismiss, for: reminder)
+                    return true
+                default:
+                    break
+                }
+                switch chars?.lowercased() {
+                case "s":
+                    self.handleReminderAction(.snooze, for: reminder)
+                    return true
+                case "o":
+                    self.handleReminderAction(.open, for: reminder)
+                    return true
+                default:
+                    return false
+                }
+            }
         }
     }
 
@@ -294,6 +382,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func closeAlert() {
         alertWindow?.close()
         alertWindow = nil
+        if let monitor = alertKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            alertKeyMonitor = nil
+        }
+    }
+
+    /// Installs a local keyDown monitor for the currently showing alert
+    /// window. `handler` returns true if it handled the key (swallows the
+    /// event) or false to let it pass through normally. Replaces any
+    /// previously installed monitor first, since only one alert shows at
+    /// a time.
+    func installAlertKeyMonitor(_ handler: @escaping (UInt16, String?) -> Bool) {
+        if let existing = alertKeyMonitor {
+            NSEvent.removeMonitor(existing)
+        }
+        alertKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if handler(event.keyCode, event.charactersIgnoringModifiers) {
+                return nil
+            }
+            return event
+        }
     }
 
     func findMeetingURL(in event: EKEvent) -> URL? {
@@ -417,12 +526,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func showPreferences() {
+        openPreferencesWindow(initialTab: "general")
+    }
+
+    func openPreferencesWindow(initialTab: String) {
         if settingsWindow != nil {
             settingsWindow?.makeKeyAndOrderFront(nil)
             return
         }
 
-        let settingsView = SettingsView(settings: settings)
+        let settingsView = SettingsView(settings: settings, initialTab: initialTab)
         let hostingController = NSHostingController(rootView: settingsView)
 
         let window = NSWindow(contentViewController: hostingController)
