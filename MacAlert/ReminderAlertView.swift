@@ -86,7 +86,7 @@ struct ReminderAlertView: View {
 
                     ReminderButton(
                         title: "snooze (2min)",
-                        shortcut: "⌘S",
+                        shortcut: "S",
                         color: Color.orange.opacity(0.85),
                         textColor: .white
                     ) {
@@ -95,7 +95,7 @@ struct ReminderAlertView: View {
 
                     ReminderButton(
                         title: "open",
-                        shortcut: "⌘O",
+                        shortcut: "O",
                         color: Color.white.opacity(0.12),
                         textColor: .white.opacity(0.9)
                     ) {
@@ -104,7 +104,7 @@ struct ReminderAlertView: View {
 
                     ReminderButton(
                         title: "done",
-                        shortcut: "⌘↩",
+                        shortcut: "↩",
                         color: Color.green,
                         textColor: .white,
                         isPrimary: true
