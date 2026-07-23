@@ -42,7 +42,20 @@ Reveille lives in your menu bar, watches your calendars, and puts a full-screen,
 
 ## Installation
 
-Reveille isn't notarized/signed yet, so for now it's build-from-source only:
+Grab the latest `.dmg` from [Releases](https://github.com/greenjacketcoder/reveille/releases/latest), open it, and drag Reveille into Applications.
+
+**Important — Reveille isn't notarized yet** (pending Apple Developer Program enrollment), so macOS Gatekeeper will block the first launch. Downloaded/installed copies get a quarantine flag that a plain double-click won't get past. Fix it once with either of these:
+
+- **Right-click (Control-click) Reveille.app → Open**, then click **Open** in the dialog that appears. On some macOS versions this shows an unhelpful "is damaged and can't be opened" message with no Open option — if you hit that, use the Terminal command below instead.
+- **Terminal (most reliable):**
+  ```bash
+  xattr -cr /Applications/Reveille.app
+  ```
+  This clears the quarantine flag from the app you just installed. After that, it opens normally — no need to repeat this on future launches or updates.
+
+Once notarization is set up, this step goes away entirely.
+
+**Building from source instead:**
 
 ```bash
 git clone https://github.com/greenjacketcoder/reveille.git
@@ -50,7 +63,7 @@ cd reveille
 open MacAlert.xcodeproj
 ```
 
-Then in Xcode: select your development team in the project settings, and build & run (⌘R). Grant calendar access when prompted.
+Then in Xcode: select your development team in the project settings, and build & run (⌘R). Grant calendar access when prompted. Apps run directly from Xcode aren't quarantined, so the Gatekeeper step above doesn't apply here.
 
 ## Settings
 
