@@ -210,7 +210,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             let hostingController = AlertHostingController(rootView: meetingAlert, event: event, delegate: self)
 
-            let window = NSWindow(contentViewController: hostingController)
+            let window = KeyableAlertWindow(contentViewController: hostingController)
             window.styleMask = [.borderless, .fullSizeContentView]
             window.level = .floating
             window.backgroundColor = .clear
@@ -243,9 +243,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.handleReminderAction(action, for: reminder)
             }
 
-            let hostingController = NSHostingController(rootView: reminderAlert)
+            let hostingController = ReminderAlertHostingController(rootView: reminderAlert, reminder: reminder, delegate: self)
 
-            let window = NSWindow(contentViewController: hostingController)
+            let window = KeyableAlertWindow(contentViewController: hostingController)
             window.styleMask = [.borderless, .fullSizeContentView]
             window.level = .floating
             window.backgroundColor = .clear
@@ -475,21 +475,70 @@ class AlertHostingController<Content: View>: NSHostingController<Content> {
     }
 
     override func keyDown(with event: NSEvent) {
-        if event.modifierFlags.contains(.command) {
-            if event.charactersIgnoringModifiers == "s" {
-                delegate?.handleAlertAction(.snooze, for: self.event)
-                return
-            } else if event.keyCode == 36 {
-                delegate?.handleAlertAction(.join, for: self.event)
-                return
-            }
+        switch event.keyCode {
+        case 36, 76: // Return / keypad Enter
+            delegate?.handleAlertAction(.join, for: self.event)
+            return
+        case 53: // Escape
+            delegate?.handleAlertAction(.dismiss, for: self.event)
+            return
+        default:
+            break
         }
 
-        if event.keyCode == 53 {
-            delegate?.handleAlertAction(.dismiss, for: self.event)
+        if event.charactersIgnoringModifiers?.lowercased() == "s" {
+            delegate?.handleAlertAction(.snooze, for: self.event)
             return
         }
 
         super.keyDown(with: event)
+    }
+}
+
+/// Borderless windows default `canBecomeKey`/`canBecomeMain` to false (Apple's
+/// own documented behavior, intended for things like tooltips that shouldn't
+/// steal keyboard focus). Since our full-screen alert windows are borderless
+/// but genuinely need to receive keyboard input (Enter/Esc/S), a plain
+/// NSWindow here silently never becomes key and keyDown never fires for
+/// anything inside it. This subclass is the standard fix.
+class KeyableAlertWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
+}
+
+class ReminderAlertHostingController<Content: View>: NSHostingController<Content> {
+    weak var delegate: AppDelegate?
+    let reminder: EKReminder
+
+    init(rootView: Content, reminder: EKReminder, delegate: AppDelegate) {
+        self.reminder = reminder
+        self.delegate = delegate
+        super.init(rootView: rootView)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func keyDown(with event: NSEvent) {
+        switch event.keyCode {
+        case 36, 76: // Return / keypad Enter -> complete
+            delegate?.handleReminderAction(.complete, for: self.reminder)
+            return
+        case 53: // Escape
+            delegate?.handleReminderAction(.dismiss, for: self.reminder)
+            return
+        default:
+            break
+        }
+
+        switch event.charactersIgnoringModifiers?.lowercased() {
+        case "s":
+            delegate?.handleReminderAction(.snooze, for: self.reminder)
+        case "o":
+            delegate?.handleReminderAction(.open, for: self.reminder)
+        default:
+            super.keyDown(with: event)
+        }
     }
 }
