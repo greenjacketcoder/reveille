@@ -103,7 +103,7 @@ struct MeetingAlertView: View {
 
                     AlertButton(
                         title: "snooze (2min)",
-                        shortcut: "⌘S",
+                        shortcut: "S",
                         color: Color.orange.opacity(0.85),
                         textColor: .white
                     ) {
@@ -112,7 +112,7 @@ struct MeetingAlertView: View {
 
                     AlertButton(
                         title: "join",
-                        shortcut: "⌘↩",
+                        shortcut: "↩",
                         color: Color.blue,
                         textColor: .white,
                         isPrimary: true
