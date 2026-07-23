@@ -1,5 +1,10 @@
 # Reveille
 
+[![How to install](https://img.shields.io/badge/How_to_install-gray?label=%F0%9F%93%A5)](#installation)
+[![Latest release](https://img.shields.io/github/v/release/greenjacketcoder/reveille?label=Latest%20release)](https://github.com/greenjacketcoder/reveille/releases/latest)
+[![Downloads latest](https://img.shields.io/github/downloads/greenjacketcoder/reveille/latest/total?logo=github&label=Downloads)](https://github.com/greenjacketcoder/reveille/releases/latest)
+[![Downloads all](https://img.shields.io/github/downloads/greenjacketcoder/reveille/total?logo=github&label=All%20downloads)](https://github.com/greenjacketcoder/reveille/releases)
+
 [![Build](https://github.com/greenjacketcoder/reveille/actions/workflows/swift.yml/badge.svg)](https://github.com/greenjacketcoder/reveille/actions/workflows/swift.yml)
 [![Status](https://img.shields.io/badge/status-beta-yellow)](https://github.com/greenjacketcoder/reveille)
 [![macOS](https://img.shields.io/badge/macOS-13.0%2B-blue?logo=apple&logoColor=white)](#requirements)
@@ -121,6 +126,10 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 ## Contributing
 
 Issues and PRs are welcome — see the About tab in-app for quick links, or go straight to [Issues](https://github.com/greenjacketcoder/reveille/issues).
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=greenjacketcoder/reveille&type=Date)](https://star-history.com/#greenjacketcoder/reveille&Date)
 
 ## License
 
