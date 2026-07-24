@@ -28,7 +28,7 @@ jobs:
       - name: Read version from built app + verify it matches the tag
         id: version
         run: |
-          APP="build/Build/Products/Release/MacAlert.app"
+          APP="build/Build/Products/Release/Reveille.app"
           SHORT=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")
           BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Contents/Info.plist")
           EXPECTED_TAG="v$SHORT"
@@ -41,7 +41,7 @@ jobs:
       - name: Package .dmg
         run: |
           mkdir -p staging
-          cp -R "build/Build/Products/Release/MacAlert.app" "staging/Reveille.app"
+          cp -R "build/Build/Products/Release/Reveille.app" "staging/Reveille.app"
           ln -s /Applications staging/Applications
           hdiutil create -volname "Reveille" -srcfolder staging -ov -format UDZO \
             "Reveille-${{ steps.version.outputs.short }}.dmg"
