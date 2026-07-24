@@ -97,7 +97,7 @@ Preferences (⌘,) has five tabs:
 
 | Tab | What's there |
 |---|---|
-| **General** | Sync interval, alert timing, Apple Reminders toggle |
+| **General** | Appearance (Match System / Light / Dark), sync interval, alert timing, Apple Reminders toggle |
 | **Sounds & Alerts** | Sound picker with previews, volume |
 | **Meeting Links** | Add/remove your personal meeting room URLs |
 | **Calendars** | Which calendars are connected, plus sync-timing notes and troubleshooting steps |

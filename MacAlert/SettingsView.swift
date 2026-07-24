@@ -44,6 +44,23 @@ class SettingsManager: ObservableObject {
         }
     }
 
+    /// "system" | "light" | "dark" — applied app-wide via NSApp.appearance,
+    /// so alerts, Preferences, and Quick Add all follow it together.
+    @Published var appearancePreference: String {
+        didSet {
+            UserDefaults.standard.set(appearancePreference, forKey: "appearancePreference")
+            SettingsManager.applyAppearance(appearancePreference)
+        }
+    }
+
+    static func applyAppearance(_ preference: String) {
+        switch preference {
+        case "light": NSApp.appearance = NSAppearance(named: .aqua)
+        case "dark": NSApp.appearance = NSAppearance(named: .darkAqua)
+        default: NSApp.appearance = nil  // follow the system
+        }
+    }
+
     init() {
         self.syncInterval = UserDefaults.standard.object(forKey: "syncInterval") as? Int ?? 60
         self.alertMinutesBefore = UserDefaults.standard.object(forKey: "alertMinutesBefore") as? Int ?? 5
@@ -52,6 +69,7 @@ class SettingsManager: ObservableObject {
         self.selectedSound = UserDefaults.standard.string(forKey: "selectedSound") ?? "Ping"
         self.personalMeetingLinks = UserDefaults.standard.dictionary(forKey: "personalMeetingLinks") as? [String: String] ?? [:]
         self.includeReminders = UserDefaults.standard.object(forKey: "includeReminders") as? Bool ?? false
+        self.appearancePreference = UserDefaults.standard.string(forKey: "appearancePreference") ?? "system"
     }
 }
 
@@ -178,6 +196,15 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
+            Section("Appearance") {
+                Picker("Appearance", selection: $settings.appearancePreference) {
+                    Text("Match System").tag("system")
+                    Text("Light").tag("light")
+                    Text("Dark").tag("dark")
+                }
+                .pickerStyle(.segmented)
+            }
+
             Section("Syncing") {
                 Picker("Check calendars every", selection: $settings.syncInterval) {
                     Text("30 seconds").tag(30)
