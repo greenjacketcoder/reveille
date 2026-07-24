@@ -34,7 +34,7 @@ jobs:
     if: needs.precheck.outputs.exists == 'false'
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       # Not notarized yet (pending Apple Developer Program enrollment), so
@@ -89,6 +89,8 @@ jobs:
         run: |
           curl -fL -o sparkle-tools.tar.xz \
             https://github.com/sparkle-project/Sparkle/releases/download/2.9.4/Sparkle-2.9.4.tar.xz
+          echo "ce89daf967db1e1893ed3ebd67575ed82d3902563e3191ca92aaec9164fbdef9  sparkle-tools.tar.xz" | shasum -a 256 -c - \
+            || { echo "::error::Sparkle CLI tools checksum mismatch - possible tampering or a changed asset. Refusing to sign."; exit 1; }
           mkdir sparkle-tools
           tar -xf sparkle-tools.tar.xz -C sparkle-tools
       # The private key is never written to a file or logged; GitHub also
