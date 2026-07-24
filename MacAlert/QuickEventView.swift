@@ -14,6 +14,7 @@ struct QuickEventView: View {
     @State private var selectedCalendar: EKCalendar?
     @State private var selectedLinkName: String? = nil
     @State private var showingSuccess = false
+    @State private var errorMessage: String? = nil
 
     let durationPresets = [15, 30, 60, 120, 240]
 
@@ -107,6 +108,11 @@ struct QuickEventView: View {
                 dismiss()
             }
         }
+        .alert("Couldn't Create Meeting", isPresented: .constant(errorMessage != nil)) {
+            Button("OK") { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
     }
 
     private func formatDuration(_ minutes: Int) -> String {
@@ -122,6 +128,13 @@ struct QuickEventView: View {
         let duration = selectedDuration == -1 ? customDuration : selectedDuration
         let linkURL = selectedLinkName.flatMap { settings.personalMeetingLinks[$0] }
 
+        // Guard against the two common write failures before attempting, so
+        // we can give a specific message rather than a generic one.
+        if calendarManager.calendars.isEmpty {
+            errorMessage = "No calendars are available to add the meeting to. Open Calendar.app and make sure at least one writable calendar is enabled."
+            return
+        }
+
         let success = calendarManager.manager.createEvent(
             title: title,
             startDate: startDate,
@@ -133,6 +146,8 @@ struct QuickEventView: View {
 
         if success {
             showingSuccess = true
+        } else {
+            errorMessage = "The meeting couldn't be saved. This can happen if Reveille doesn't have permission to modify your calendars, or there's no default calendar set. Check System Settings > Privacy & Security > Calendars."
         }
     }
 }

@@ -322,9 +322,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let events = calendarManager?.getUpcomingEvents(withinMinutes: alertMinutes) else { return }
 
         for event in events {
-            if !hasShownAlert(for: event.eventIdentifier) {
+            let key = alertKey(for: event)
+            if !hasShownAlert(for: key) {
                 showAlert(for: event)
-                markAlertShown(for: event.eventIdentifier)
+                markAlertShown(for: key)
             }
         }
 
@@ -341,6 +342,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Keep the menu-bar countdown fresh as events come and go.
         updateMenuBarTitle()
+    }
+
+    /// Dedup key for "already alerted this event." Recurring events share one
+    /// eventIdentifier across every occurrence, so identifier alone would
+    /// suppress alerts for a later occurrence of the same series on the same
+    /// day. Combining it with the occurrence's start time keeps occurrences
+    /// distinct while still de-duplicating repeat checks of the same one.
+    private func alertKey(for event: EKEvent) -> String {
+        let identifier = event.eventIdentifier ?? "unknown"
+        let start = event.startDate.timeIntervalSince1970
+        return "\(identifier)@\(Int(start))"
     }
 
     private var shownAlerts = Set<String>()
@@ -499,8 +511,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             closeAlert()
         case .snooze:
             closeAlert()
+            let key = alertKey(for: event)
             DispatchQueue.main.asyncAfter(deadline: .now() + 120) {
-                self.shownAlerts.remove(event.eventIdentifier)
+                self.shownAlerts.remove(key)
             }
         case .dismiss:
             closeAlert()

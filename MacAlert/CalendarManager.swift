@@ -112,12 +112,21 @@ class CalendarManager {
     }
 
     func createEvent(title: String, startDate: Date, durationMinutes: Int, notes: String?, calendar: EKCalendar?, meetingLinkURL: String? = nil) -> Bool {
+        // Need a target calendar: the one passed in, or the system default.
+        // If neither exists, there's nowhere to save — fail rather than crash.
+        guard let targetCalendar = calendar ?? eventStore.defaultCalendarForNewEvents else {
+            return false
+        }
+        guard let endDate = Calendar.current.date(byAdding: .minute, value: durationMinutes, to: startDate) else {
+            return false
+        }
+
         let event = EKEvent(eventStore: eventStore)
         event.title = title
         event.startDate = startDate
-        event.endDate = Calendar.current.date(byAdding: .minute, value: durationMinutes, to: startDate)
+        event.endDate = endDate
         event.notes = notes
-        event.calendar = calendar ?? eventStore.defaultCalendarForNewEvents
+        event.calendar = targetCalendar
 
         if let meetingLinkURL, let url = URL(string: meetingLinkURL) {
             event.url = url
