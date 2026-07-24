@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-24
+
 ### Security
-- Meeting-link detection now matches the parsed URL host against a provider allowlist instead of substring-matching the whole URL. Previously, a crafted calendar invite with a URL like `https://evil.example/?r=https://zoom.us/` would earn a trusted, provider-labeled Join button; lookalike and suffix-spoofed domains are now rejected, and web meeting links must be `https`.
+- Meeting-link detection now matches the parsed URL host against a provider allowlist instead of substring-matching the whole URL. Previously, a crafted calendar invite with a URL like `https://evil.example/?r=https://zoom.us/` would earn a trusted, provider-labeled Join button; lookalike and suffix-spoofed domains are now rejected, and web meeting links must be `https`. The detection logic now lives in a separate, unit-tested Swift package (14 tests covering the attack cases), run in CI on every change.
 - Personal Meeting Links now require `https` (or FaceTime's scheme); plain `http` links are rejected.
 - Release pipeline hardening: the Sparkle CLI tools download is verified against a pinned SHA-256 before signing, and GitHub Actions are pinned to commit SHAs. Dependabot keeps both fresh, and CodeQL scanning runs on every push.
 
@@ -54,7 +56,8 @@ Initial public release.
 - Automatic updates via Sparkle, with EdDSA-signed releases
 - Release automation via GitHub Actions: tag push builds, packages, and Sparkle-signs a `.dmg`, updates the appcast, and publishes a GitHub Release
 
-[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/greenjacketcoder/reveille/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/greenjacketcoder/reveille/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/greenjacketcoder/reveille/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/greenjacketcoder/reveille/releases/tag/v0.1.0
