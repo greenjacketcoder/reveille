@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Menu-bar countdown: the menu bar now shows the next meeting's title and a live countdown next to the icon (e.g. "Standup · 4m"), so the app is useful between alerts, not only at alert time. Can be turned off in Preferences → General.
+
 ## [0.1.3] - 2026-07-24
 
 ### Security
