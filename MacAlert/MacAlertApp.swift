@@ -308,6 +308,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.isOpaque = false
             window.hasShadow = true
             window.isMovable = false
+            window.isReleasedWhenClosed = false
             if let forced = self.debugForcedAppearance {
                 window.appearance = forced
             }
@@ -364,6 +365,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.isOpaque = false
             window.hasShadow = true
             window.isMovable = false
+            window.isReleasedWhenClosed = false
             if let forced = self.debugForcedAppearance {
                 window.appearance = forced
             }
@@ -568,6 +570,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.styleMask = [.titled, .closable]
         window.level = .floating
         window.center()
+        // Release the window (and its whole SwiftUI hierarchy, including the
+        // EKEventStore the wrapper creates) when closed, instead of keeping
+        // it resident for the app's lifetime. ARC owns it; delegate nils the
+        // reference in windowWillClose.
+        window.isReleasedWhenClosed = false
+        window.delegate = self
 
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -594,6 +602,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.setContentSize(NSSize(width: 700, height: 560))
         window.center()
         window.collectionBehavior = [.canJoinAllSpaces]
+        window.isReleasedWhenClosed = false
+        window.delegate = self
 
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -604,6 +614,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func quit() {
         NSApplication.shared.terminate(nil)
     }
+}
+
+// MARK: - Window lifecycle
+
+extension AppDelegate: NSWindowDelegate {
+    /// Release closed windows instead of keeping them resident forever.
+    /// Without this, the first open of Preferences or Quick Add retained its
+    /// entire SwiftUI hierarchy (hosting controller, views, and the extra
+    /// EKEventStore instances some views create) for the app's lifetime,
+    /// so memory ratcheted up after each interaction and never came back down.
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        if window == settingsWindow {
+            settingsWindow = nil
+        } else if window == quickEventWindow {
+            quickEventWindow = nil
+        }
+    }
+}
+
+extension AppDelegate {
 
     func showAccessDeniedAlert() {
         DispatchQueue.main.async {
