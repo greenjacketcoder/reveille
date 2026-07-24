@@ -38,6 +38,18 @@ jobs:
           fi
           echo "short=$SHORT" >> "$GITHUB_OUTPUT"
           echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+      # Runs early, before any step with side effects (appcast commit,
+      # release publish): a missing changelog section fails the whole
+      # release cleanly rather than leaving it half-done.
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          python3 scripts/extract_changelog.py "${{ steps.version.outputs.short }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "---" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "Full history: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)" >> release_notes.md
+
       - name: Package .dmg
         run: |
           mkdir -p staging
@@ -99,4 +111,5 @@ jobs:
           gh release create "${{ github.ref_name }}" \
             "Reveille-${{ steps.version.outputs.short }}.dmg" \
             --title "Reveille ${{ steps.version.outputs.short }}" \
+            --notes-file release_notes.md \
             --generate-notes
