@@ -121,7 +121,7 @@ It's open source, so you don't have to take this on faith — `CalendarManager.s
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for release history.
+See [CHANGELOG.md](CHANGELOG.md) for release history, and [ROADMAP.md](ROADMAP.md) for what's planned next.
 
 ## Contributing
 

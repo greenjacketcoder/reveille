@@ -13,3 +13,6 @@ UI_IMPROVEMENTS.md
 # Swift Package Manager build output
 .build/
 MeetingLink/.build/
+
+# Stale doc from the original MacAlert project - removed
+FEATURES.md
