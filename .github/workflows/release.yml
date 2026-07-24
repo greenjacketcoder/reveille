@@ -9,7 +9,29 @@ permissions:
   contents: write
 
 jobs:
+  # Re-pushing an existing tag (e.g. after a history rewrite) re-triggers
+  # this workflow; without this guard those re-runs die at the appcast
+  # commit with a confusing non-fast-forward error. Skip cleanly instead.
+  precheck:
+    runs-on: ubuntu-latest
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Check whether a release already exists for this tag
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release $GITHUB_REF_NAME already exists - skipping the release job (tag was re-pushed)."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
+    needs: precheck
+    if: needs.precheck.outputs.exists == 'false'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
