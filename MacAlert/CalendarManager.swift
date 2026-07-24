@@ -54,6 +54,13 @@ class CalendarManager {
             .sorted { $0.startDate < $1.startDate }
     }
 
+    /// The next event today that hasn't started yet, for the menu-bar
+    /// countdown. Nil if nothing remains today.
+    func getNextEvent() -> EKEvent? {
+        let now = Date()
+        return getTodaysEvents().first { $0.startDate > now }
+    }
+
     func getUpcomingReminders(withinMinutes minutes: Int) -> [EKReminder] {
         let calendars = eventStore.calendars(for: .reminder)
         let now = Date()

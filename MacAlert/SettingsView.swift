@@ -44,6 +44,15 @@ class SettingsManager: ObservableObject {
         }
     }
 
+    /// Whether the menu bar shows the next event's title + countdown next to
+    /// the icon, or just the icon alone.
+    @Published var showMenuBarCountdown: Bool {
+        didSet {
+            UserDefaults.standard.set(showMenuBarCountdown, forKey: "showMenuBarCountdown")
+            NotificationCenter.default.post(name: .menuBarDisplayChanged, object: nil)
+        }
+    }
+
     /// "system" | "light" | "dark" — applied app-wide via NSApp.appearance,
     /// so alerts, Preferences, and Quick Add all follow it together.
     @Published var appearancePreference: String {
@@ -69,8 +78,15 @@ class SettingsManager: ObservableObject {
         self.selectedSound = UserDefaults.standard.string(forKey: "selectedSound") ?? "Ping"
         self.personalMeetingLinks = UserDefaults.standard.dictionary(forKey: "personalMeetingLinks") as? [String: String] ?? [:]
         self.includeReminders = UserDefaults.standard.object(forKey: "includeReminders") as? Bool ?? false
+        self.showMenuBarCountdown = UserDefaults.standard.object(forKey: "showMenuBarCountdown") as? Bool ?? true
         self.appearancePreference = UserDefaults.standard.string(forKey: "appearancePreference") ?? "system"
     }
+}
+
+extension Notification.Name {
+    /// Posted when the menu-bar display preference changes, so the
+    /// AppDelegate can refresh the status item immediately.
+    static let menuBarDisplayChanged = Notification.Name("menuBarDisplayChanged")
 }
 
 struct SettingsView: View {
@@ -232,6 +248,14 @@ struct GeneralSettingsView: View {
                 Text("Reminders")
             } footer: {
                 Text("Show full-screen alerts for reminders with due dates. Requires Reminders access.")
+            }
+
+            Section {
+                Toggle("Show next meeting in the menu bar", isOn: $settings.showMenuBarCountdown)
+            } header: {
+                Text("Menu Bar")
+            } footer: {
+                Text("Display the next event's title and a live countdown next to the icon. Turn off for just the icon.")
             }
         }
         .formStyle(.grouped)

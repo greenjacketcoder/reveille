@@ -20,6 +20,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var calendarManager: CalendarManager?
     var settings = SettingsManager()
     var timer: Timer?
+    /// Fires every ~30s to refresh the menu-bar countdown text. Separate from
+    /// `timer` (the alert-check timer), which can be as slow as 5 minutes —
+    /// too coarse for a live "in 4m" countdown.
+    var menuBarTimer: Timer?
+    /// Set while access retry is in progress; suppresses the countdown so the
+    /// two don't fight over the status item's title.
+    private var retryStatusText: String?
     var alertWindow: NSWindow?
     var settingsWindow: NSWindow?
     var quickEventWindow: NSWindow?
@@ -71,7 +78,73 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(menuBarDisplayChanged),
+            name: .menuBarDisplayChanged,
+            object: nil
+        )
+
+        startMenuBarTimer()
+
         handleDebugScreenshotArgument()
+    }
+
+    // MARK: - Menu bar countdown
+
+    /// Refreshes the next-meeting countdown roughly every 30s. The alert-check
+    /// timer is too coarse (up to 5 min) for a smooth countdown.
+    private func startMenuBarTimer() {
+        menuBarTimer?.invalidate()
+        menuBarTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            self?.updateMenuBarTitle()
+        }
+        menuBarTimer?.tolerance = 5
+        updateMenuBarTitle()
+    }
+
+    @objc private func menuBarDisplayChanged() {
+        updateMenuBarTitle()
+    }
+
+    /// Sets the status item's title from the next event, unless retry status
+    /// is showing (which takes priority) or the user turned the countdown off.
+    private func updateMenuBarTitle() {
+        guard let button = statusItem?.button else { return }
+
+        // Retry status wins while access is being acquired.
+        if let retry = retryStatusText {
+            button.title = retry.isEmpty ? "" : " " + retry
+            return
+        }
+
+        guard settings.showMenuBarCountdown, let next = calendarManager?.getNextEvent() else {
+            button.title = ""
+            return
+        }
+
+        button.title = " " + menuBarString(for: next)
+    }
+
+    /// "Standup · 4m" style label, truncating long titles.
+    private func menuBarString(for event: EKEvent) -> String {
+        let mins = Int(event.startDate.timeIntervalSinceNow / 60)
+        let countdown: String
+        if mins < 1 {
+            countdown = "now"
+        } else if mins < 60 {
+            countdown = "\(mins)m"
+        } else {
+            let h = mins / 60, m = mins % 60
+            countdown = m == 0 ? "\(h)h" : "\(h)h \(m)m"
+        }
+
+        var title = event.title ?? "Meeting"
+        let maxLen = 24
+        if title.count > maxLen {
+            title = String(title.prefix(maxLen - 1)) + "…"
+        }
+        return "\(title) · \(countdown)"
     }
 
     /// Lets us pop open any window on demand for screenshotting/UX review,
@@ -176,10 +249,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Shows retry progress as text next to the menu bar bell icon, or
-    /// clears it (nil) once access is resolved.
+    /// Shows retry progress next to the menu bar icon, or clears it (nil)
+    /// once access is resolved. Routes through updateMenuBarTitle so it
+    /// coordinates with the countdown rather than overwriting it directly.
     private func setRetryStatus(_ text: String?) {
-        statusItem?.button?.title = text ?? ""
+        retryStatusText = text
+        updateMenuBarTitle()
     }
 
     @objc func syncIntervalChanged() {
@@ -263,6 +338,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+
+        // Keep the menu-bar countdown fresh as events come and go.
+        updateMenuBarTitle()
     }
 
     private var shownAlerts = Set<String>()
