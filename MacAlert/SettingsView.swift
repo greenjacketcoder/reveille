@@ -126,10 +126,6 @@ struct AboutSettingsView: View {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
     }
 
-    private var buildNumber: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
-    }
-
     var body: some View {
         Form {
             Section {
@@ -144,7 +140,7 @@ struct AboutSettingsView: View {
                         Text("Reveille")
                             .font(.title2)
                             .bold()
-                        Text("Version \(appVersion) (\(buildNumber))")
+                        Text("Version \(appVersion)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text("Free, open-source meeting alerts. No accounts, no telemetry.")
