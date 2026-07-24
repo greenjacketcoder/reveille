@@ -30,6 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var alertWindow: NSWindow?
     var settingsWindow: NSWindow?
     var quickEventWindow: NSWindow?
+    /// The menu-bar agenda dropdown, shown on left-click of the status item.
+    var agendaPopover: NSPopover?
 
     /// Debug-screenshot only: force light/dark on alert windows so both
     /// schemes can be captured regardless of the system appearance.
@@ -167,6 +169,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.openPreferencesWindow(initialTab: arg ?? "general")
             case "quickadd":
                 self.showQuickEvent()
+            case "agenda":
+                self.showAgendaPopover()
             case "meeting-alert":
                 // Fake event + agenda mirroring the design mock, so screenshots
                 // show the sidebar populated the way real usage would.
@@ -269,41 +273,59 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.image = NSImage(named: "MenuBarIcon")
             button.image?.accessibilityDescription = "Reveille"
             button.image?.isTemplate = true
+            button.action = #selector(statusItemClicked)
+            button.target = self
         }
+    }
 
-        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Next Meeting", action: #selector(showNextMeeting), keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Quick Add Meeting...", action: #selector(showQuickEvent), keyEquivalent: "n"))
-        menu.addItem(NSMenuItem.separator())
-
-        let linksMenu = NSMenu()
-        if !settings.personalMeetingLinks.isEmpty {
-            for (name, url) in settings.personalMeetingLinks.sorted(by: { $0.key < $1.key }) {
-                let item = NSMenuItem(title: name, action: #selector(openPersonalLink(_:)), keyEquivalent: "")
-                item.representedObject = url
-                linksMenu.addItem(item)
-            }
-        } else {
-            linksMenu.addItem(NSMenuItem(title: "No saved links", action: nil, keyEquivalent: ""))
+    /// Toggles the agenda popover. Left-click shows today's meetings; the
+    /// popover itself carries the app actions (Quick Add, Settings, updates,
+    /// quit) in its footer, so no separate NSMenu is needed.
+    @objc private func togglePopover() {
+        if let popover = agendaPopover, popover.isShown {
+            popover.performClose(nil)
+            return
         }
+        showAgendaPopover()
+    }
 
-        let linksMenuItem = NSMenuItem(title: "Personal Meeting Links", action: nil, keyEquivalent: "")
-        linksMenuItem.submenu = linksMenu
-        menu.addItem(linksMenuItem)
+    @objc private func statusItemClicked() {
+        togglePopover()
+    }
 
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Preferences...", action: #selector(showPreferences), keyEquivalent: ","))
-        let checkForUpdatesItem = NSMenuItem(
-            title: "Check for Updates...",
-            action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
-            keyEquivalent: ""
+    private func showAgendaPopover() {
+        guard let button = statusItem?.button else { return }
+
+        let events = calendarManager?.getTodaysEvents() ?? []
+        let agenda = AgendaView(
+            events: events,
+            onJoin: { [weak self] event in
+                self?.agendaPopover?.performClose(nil)
+                if let url = self?.findMeetingURL(in: event) {
+                    NSWorkspace.shared.open(url)
+                }
+            },
+            onQuickAdd: { [weak self] in
+                self?.agendaPopover?.performClose(nil)
+                self?.showQuickEvent()
+            },
+            onPreferences: { [weak self] in
+                self?.agendaPopover?.performClose(nil)
+                self?.showPreferences()
+            },
+            onCheckForUpdates: { [weak self] in
+                self?.agendaPopover?.performClose(nil)
+                self?.updaterController.checkForUpdates(nil)
+            },
+            onQuit: { NSApplication.shared.terminate(nil) }
         )
-        checkForUpdatesItem.target = updaterController
-        menu.addItem(checkForUpdatesItem)
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit Reveille", action: #selector(quit), keyEquivalent: "q"))
 
-        statusItem?.menu = menu
+        let popover = NSPopover()
+        popover.contentViewController = NSHostingController(rootView: agenda)
+        popover.behavior = .transient  // auto-closes when you click elsewhere
+        popover.animates = true
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        agendaPopover = popover
     }
 
     func startMonitoring() {
@@ -385,7 +407,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let meetingAlert = MeetingAlertView(
                 event: event,
                 todaysEvents: todaysEvents,
-                meetingURL: meetingURL
+                meetingURL: meetingURL,
+                snoozeMinutes: self.settings.snoozeMinutes
             ) { action in
                 self.handleAlertAction(action, for: event)
             }
@@ -443,7 +466,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.playAlertSound()
             }
 
-            let reminderAlert = ReminderAlertView(reminder: reminder) { action in
+            let reminderAlert = ReminderAlertView(reminder: reminder, snoozeMinutes: self.settings.snoozeMinutes) { action in
                 self.handleReminderAction(action, for: reminder)
             }
 
@@ -511,9 +534,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             closeAlert()
         case .snooze:
             closeAlert()
+            // Re-fire precisely after the snooze interval rather than relying
+            // on the next poll (which can be up to `syncInterval` — as much as
+            // 5 min — away, landing the re-alert well after the meeting starts).
             let key = alertKey(for: event)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 120) {
-                self.shownAlerts.remove(key)
+            shownAlerts.remove(key)
+            let snooze = TimeInterval(settings.snoozeMinutes * 60)
+            DispatchQueue.main.asyncAfter(deadline: .now() + snooze) { [weak self] in
+                guard let self = self else { return }
+                // Only re-alert if it's still upcoming and not already re-shown.
+                if event.startDate > Date(), !self.hasShownAlert(for: key) {
+                    self.showAlert(for: event)
+                    self.markAlertShown(for: key)
+                }
             }
         case .dismiss:
             closeAlert()
@@ -572,44 +605,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return nil
     }
 
-    @objc func showNextMeeting() {
-        guard let events = calendarManager?.getUpcomingEvents(withinMinutes: 60) else {
-            showNoMeetingsAlert()
-            return
-        }
-
-        if let nextEvent = events.first {
-            let alert = NSAlert()
-            alert.messageText = "Next Meeting"
-            alert.informativeText = """
-            \(nextEvent.title ?? "Untitled")
-            \(formatEventTime(nextEvent))
-            """
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
-        } else {
-            showNoMeetingsAlert()
-        }
-    }
-
-    func showNoMeetingsAlert() {
-        let alert = NSAlert()
-        alert.messageText = "No Upcoming Meetings"
-        alert.informativeText = "You have no meetings in the next hour."
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "OK")
-        alert.runModal()
-    }
-
-    func formatEventTime(_ event: EKEvent) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        let start = formatter.string(from: event.startDate)
-        let end = formatter.string(from: event.endDate)
-        return "\(start) - \(end)"
-    }
-
     func handleReminderAction(_ action: AlertAction, for reminder: EKReminder) {
         switch action {
         case .complete:
@@ -622,21 +617,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         case .snooze:
             closeAlert()
             let identifier = reminder.calendarItemIdentifier
-            DispatchQueue.main.asyncAfter(deadline: .now() + 120) {
-                self.shownAlerts.remove(identifier)
+            shownAlerts.remove(identifier)
+            let snooze = TimeInterval(settings.snoozeMinutes * 60)
+            DispatchQueue.main.asyncAfter(deadline: .now() + snooze) { [weak self] in
+                guard let self = self else { return }
+                if !self.hasShownAlert(for: identifier) {
+                    self.showReminderAlert(for: reminder)
+                    self.markAlertShown(for: identifier)
+                }
             }
         case .dismiss:
             closeAlert()
         case .join:
             // Not applicable to reminders; meetings use .join instead.
             break
-        }
-    }
-
-    @objc func openPersonalLink(_ sender: NSMenuItem) {
-        if let urlString = sender.representedObject as? String,
-           let url = URL(string: urlString) {
-            NSWorkspace.shared.open(url)
         }
     }
 

@@ -91,6 +91,7 @@ struct MeetingAlertView: View {
     let event: EKEvent
     var todaysEvents: [EKEvent] = []
     var meetingURL: URL? = nil
+    var snoozeMinutes: Int = 2
     let onAction: (AlertAction) -> Void
 
     @Environment(\.colorScheme) private var colorScheme
@@ -318,7 +319,7 @@ struct MeetingAlertView: View {
                         onAction(.join)
                     }
 
-                    PanelButton(title: "Snooze 2 min", style: .secondary, palette: palette) {
+                    PanelButton(title: "Snooze \(snoozeMinutes) min", style: .secondary, palette: palette) {
                         onAction(.snooze)
                     }
 

@@ -6,6 +6,7 @@ import EventKit
 /// day-timeline in the same way; a single focused card is calmer).
 struct ReminderAlertView: View {
     let reminder: EKReminder
+    var snoozeMinutes: Int = 2
     let onAction: (AlertAction) -> Void
 
     @Environment(\.colorScheme) private var colorScheme
@@ -68,7 +69,7 @@ struct ReminderAlertView: View {
                             onAction(.complete)
                         }
 
-                        PanelButton(title: "Snooze 2 min", style: .secondary, palette: palette) {
+                        PanelButton(title: "Snooze \(snoozeMinutes) min", style: .secondary, palette: palette) {
                             onAction(.snooze)
                         }
 

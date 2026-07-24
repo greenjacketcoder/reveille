@@ -14,6 +14,13 @@ class SettingsManager: ObservableObject {
         }
     }
 
+    /// How long snooze defers an alert, in minutes.
+    @Published var snoozeMinutes: Int {
+        didSet {
+            UserDefaults.standard.set(snoozeMinutes, forKey: "snoozeMinutes")
+        }
+    }
+
     @Published var soundEnabled: Bool {
         didSet {
             UserDefaults.standard.set(soundEnabled, forKey: "soundEnabled")
@@ -73,6 +80,7 @@ class SettingsManager: ObservableObject {
     init() {
         self.syncInterval = UserDefaults.standard.object(forKey: "syncInterval") as? Int ?? 60
         self.alertMinutesBefore = UserDefaults.standard.object(forKey: "alertMinutesBefore") as? Int ?? 5
+        self.snoozeMinutes = UserDefaults.standard.object(forKey: "snoozeMinutes") as? Int ?? 2
         self.soundEnabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true
         self.soundVolume = UserDefaults.standard.object(forKey: "soundVolume") as? Double ?? 0.7
         self.selectedSound = UserDefaults.standard.string(forKey: "selectedSound") ?? "Ping"
@@ -236,6 +244,13 @@ struct GeneralSettingsView: View {
                 Picker("Alert before meeting", selection: $settings.alertMinutesBefore) {
                     Text("1 minute").tag(1)
                     Text("3 minutes").tag(3)
+                    Text("5 minutes").tag(5)
+                    Text("10 minutes").tag(10)
+                    Text("15 minutes").tag(15)
+                }
+
+                Picker("Snooze for", selection: $settings.snoozeMinutes) {
+                    Text("2 minutes").tag(2)
                     Text("5 minutes").tag(5)
                     Text("10 minutes").tag(10)
                     Text("15 minutes").tag(15)

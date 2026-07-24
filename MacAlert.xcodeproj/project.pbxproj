@@ -15,6 +15,7 @@
 		AA00000D0000000000000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000E0000000000000002 /* SettingsView.swift */; };
 		AA00000F0000000000000002 /* QuickEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000100000000000000002 /* QuickEventView.swift */; };
 		AA0000110000000000000002 /* ReminderAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000120000000000000002 /* ReminderAlertView.swift */; };
+		AA00001E0000000000000003 /* AgendaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F0000000000000003 /* AgendaView.swift */; };
 		BB0000030000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000020000000000000001 /* Sparkle */; };
 		CC0000030000000000000001 /* MeetingLink in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000020000000000000001 /* MeetingLink */; };
 /* End PBXBuildFile section */
@@ -30,6 +31,7 @@
 		AA00000E0000000000000002 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA0000100000000000000002 /* QuickEventView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickEventView.swift; sourceTree = "<group>"; };
 		AA0000120000000000000002 /* ReminderAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderAlertView.swift; sourceTree = "<group>"; };
+		AA00001F0000000000000003 /* AgendaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgendaView.swift; sourceTree = "<group>"; };
 		CC0000040000000000000001 /* MeetingLink */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = MeetingLink; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -65,6 +67,7 @@
 				AA00000E0000000000000002 /* SettingsView.swift */,
 				AA0000100000000000000002 /* QuickEventView.swift */,
 				AA0000120000000000000002 /* ReminderAlertView.swift */,
+				AA00001F0000000000000003 /* AgendaView.swift */,
 				AA00000A0000000000000001 /* Assets.xcassets */,
 				AA00000C0000000000000001 /* Info.plist */,
 			);
@@ -158,6 +161,7 @@
 				AA00000D0000000000000002 /* SettingsView.swift in Sources */,
 				AA00000F0000000000000002 /* QuickEventView.swift in Sources */,
 				AA0000110000000000000002 /* ReminderAlertView.swift in Sources */,
+				AA00001E0000000000000003 /* AgendaView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
