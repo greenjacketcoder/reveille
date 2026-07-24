@@ -9,3 +9,7 @@ Reveille Mac App UX Redesign/
 
 # Stale docs from the original MacAlert project - removed, keep untracked if recreated
 UI_IMPROVEMENTS.md
+
+# Swift Package Manager build output
+.build/
+MeetingLink/.build/

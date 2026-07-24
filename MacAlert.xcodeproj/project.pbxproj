@@ -16,6 +16,7 @@
 		AA00000F0000000000000002 /* QuickEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000100000000000000002 /* QuickEventView.swift */; };
 		AA0000110000000000000002 /* ReminderAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000120000000000000002 /* ReminderAlertView.swift */; };
 		BB0000030000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BB0000020000000000000001 /* Sparkle */; };
+		CC0000030000000000000001 /* MeetingLink in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000020000000000000001 /* MeetingLink */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 		AA00000E0000000000000002 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA0000100000000000000002 /* QuickEventView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickEventView.swift; sourceTree = "<group>"; };
 		AA0000120000000000000002 /* ReminderAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderAlertView.swift; sourceTree = "<group>"; };
+		CC0000040000000000000001 /* MeetingLink */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = MeetingLink; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +39,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB0000030000000000000001 /* Sparkle in Frameworks */,
+				CC0000030000000000000001 /* MeetingLink in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,6 +50,7 @@
 			isa = PBXGroup;
 			children = (
 				AA00000F0000000000000001 /* MacAlert */,
+				CC0000040000000000000001 /* MeetingLink */,
 				AA0000100000000000000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -93,6 +97,7 @@
 			name = MacAlert;
 			packageProductDependencies = (
 				BB0000020000000000000001 /* Sparkle */,
+				CC0000020000000000000001 /* MeetingLink */,
 			);
 			productName = MacAlert;
 			productReference = AA00000B0000000000000001 /* MacAlert.app */;
@@ -119,6 +124,7 @@
 			mainGroup = AA00000E0000000000000001;
 			packageReferences = (
 				BB0000010000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				CC0000010000000000000001 /* XCLocalSwiftPackageReference "MeetingLink" */,
 			);
 			productRefGroup = AA0000100000000000000001 /* Products */;
 			projectDirPath = "";
@@ -348,6 +354,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		CC0000010000000000000001 /* XCLocalSwiftPackageReference "MeetingLink" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = MeetingLink;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		BB0000010000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -364,6 +377,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BB0000010000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		CC0000020000000000000001 /* MeetingLink */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MeetingLink;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

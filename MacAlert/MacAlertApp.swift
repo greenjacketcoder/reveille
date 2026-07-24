@@ -2,6 +2,7 @@ import SwiftUI
 import EventKit
 import AVFoundation
 import Sparkle
+import MeetingLink
 
 @main
 struct MacAlertApp: App {
