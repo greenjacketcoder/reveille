@@ -31,3 +31,6 @@ jobs:
           -scheme MacAlert \
           -destination 'platform=macOS' \
           CODE_SIGNING_ALLOWED=NO
+
+    - name: Test MeetingLink package (security-critical link matching)
+      run: swift test --package-path MeetingLink
