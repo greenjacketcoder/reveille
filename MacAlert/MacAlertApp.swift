@@ -54,6 +54,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
 
+        // Apply the saved appearance preference (System/Light/Dark) app-wide
+        // before any windows exist.
+        SettingsManager.applyAppearance(settings.appearancePreference)
+
         setupMenuBar()
 
         calendarManager = CalendarManager()
