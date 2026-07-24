@@ -23,12 +23,12 @@ Reveille lives in your menu bar, watches your calendars, and puts a full-screen,
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/reminder_alert.png" alt="Reminder alert"><br><sub>Reminder alert — complete, snooze, or open in Reminders.app</sub></td>
-<td width="50%"><img src="docs/screenshots/quickadd.png" alt="Quick Add Meeting"><br><sub>Quick Add Meeting, with duration presets and link auto-fill</sub></td>
+<td width="50%"><img src="docs/screenshots/meeting_alert_light.png" alt="Meeting alert, light appearance"><br><sub>The same alert in light appearance — follows your system setting automatically</sub></td>
+<td width="50%"><img src="docs/screenshots/reminder_alert.png" alt="Reminder alert"><br><sub>Reminder alert — mark done, snooze, or open in Reminders.app</sub></td>
 </tr>
 <tr>
+<td width="50%"><img src="docs/screenshots/quickadd.png" alt="Quick Add Meeting"><br><sub>Quick Add Meeting, with duration presets and link auto-fill</sub></td>
 <td width="50%"><img src="docs/screenshots/prefs_general.png" alt="General settings"><br><sub>General — sync interval, alert timing</sub></td>
-<td width="50%"><img src="docs/screenshots/prefs_sounds.png" alt="Sounds settings"><br><sub>Sounds & Alerts — preview and volume</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/screenshots/prefs_links.png" alt="Meeting Links settings"><br><sub>Meeting Links — save recurring rooms</sub></td>
@@ -39,12 +39,12 @@ Reveille lives in your menu bar, watches your calendars, and puts a full-screen,
 ## Features
 
 **Alerts**
-- Full-screen, FaceTime-style alerts, timed 1–15 minutes before a meeting
+- Full-screen alerts that take over the display, timed 1–15 minutes before a meeting
+- Calm, structured layout: today's agenda in a sidebar rail, a live countdown, and one clear primary action — with automatic light/dark appearance matching your system
 - Works with any calendar synced to macOS (iCloud, Google, Outlook, etc.)
-- Automatic meeting link detection — Zoom, Google Meet, Microsoft Teams, Discord, Slack, FaceTime
-- One-click join, snooze (2 min), or dismiss
-- Keyboard shortcuts: Enter to join, Esc to dismiss
-- Apple Reminders support — get the same full-screen treatment for reminders with due dates, and mark them complete or open them in Reminders.app directly from the alert
+- Automatic meeting link detection — Zoom, Google Meet, Microsoft Teams, Discord, Slack, FaceTime — with a provider-labeled Join button and one-click link copy
+- Join, snooze (2 min), or dismiss; keyboard shortcuts: Enter to join, Esc to dismiss
+- Apple Reminders support — get the same treatment for reminders with due dates, and mark them complete or open them in Reminders.app directly from the alert
 
 **Creating meetings**
 - Quick Add Meeting from the menu bar, with duration presets (15m/30m/1h/2h/4h or custom)

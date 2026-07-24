@@ -1,128 +1,100 @@
 import SwiftUI
 import EventKit
 
+/// Reminder alert in the same Daybreak/Nightshift panel language as the
+/// meeting alert, minus the agenda rail (reminders don't belong to the
+/// day-timeline in the same way; a single focused card is calmer).
 struct ReminderAlertView: View {
     let reminder: EKReminder
     let onAction: (AlertAction) -> Void
 
-    @State private var timeRemaining: String = ""
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var now = Date()
     @State private var timer: Timer?
 
-    @State private var pulseAnimation = false
+    private var palette: AlertPalette { AlertPalette.palette(for: colorScheme) }
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.92)
+            Color.black.opacity(0.45)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                if let dueDate = reminder.dueDateComponents?.date {
-                    Text(formatDateHeader(dueDate))
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.6))
-                        .padding(.top, 40)
+                // Top bar: brand + live clock
+                HStack {
+                    HStack(spacing: 10) {
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(palette.accent)
+                            .frame(width: 12, height: 12)
+                        Text("Reveille")
+                            .font(.system(size: 18, weight: .semibold, design: .serif))
+                            .foregroundColor(palette.textPrimary)
+                    }
+                    Spacer()
+                    Text(clockString)
+                        .font(.system(size: 12.5, weight: .medium, design: .monospaced))
+                        .foregroundColor(palette.textQuaternary)
                 }
+                .padding(.horizontal, 28)
+                .frame(height: 52)
+                .overlay(alignment: .bottom) { Rectangle().fill(palette.hairline).frame(height: 1) }
 
-                Spacer()
+                VStack(alignment: .leading, spacing: 0) {
+                    dueLine
+                        .padding(.bottom, 22)
 
-                VStack(spacing: 32) {
-                    VStack(spacing: 16) {
-                        Text(reminder.title ?? "Untitled Reminder")
-                            .font(.system(size: 42, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                            .padding(.horizontal, 60)
-                    }
-
-                    VStack(spacing: 12) {
-                        Text(timeRemaining)
-                            .font(.system(size: 28, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.vertical, 24)
-                    .padding(.horizontal, 48)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .strokeBorder(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.orange.opacity(pulseAnimation ? 0.6 : 0.3),
-                                                Color.yellow.opacity(pulseAnimation ? 0.6 : 0.3)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 2
-                                    )
-                            )
-                    )
+                    Text(reminder.title ?? "Untitled Reminder")
+                        .font(.system(size: 42, weight: .medium, design: .serif))
+                        .foregroundColor(palette.textPrimary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.6)
+                        .padding(.bottom, 18)
 
                     if let notes = reminder.notes, !notes.isEmpty {
                         Text(notes)
-                            .font(.system(size: 16))
-                            .foregroundColor(.white.opacity(0.6))
-                            .multilineTextAlignment(.center)
+                            .font(.system(size: 13.5))
+                            .foregroundColor(palette.textTertiary)
                             .lineLimit(3)
-                            .padding(.horizontal, 80)
-                            .padding(.top, 8)
+                            .padding(.vertical, 13)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .overlay(alignment: .top) { Rectangle().fill(palette.hairlineStrong).frame(height: 1) }
+                            .overlay(alignment: .bottom) { Rectangle().fill(palette.hairlineStrong).frame(height: 1) }
+                    }
+
+                    Spacer(minLength: 0)
+
+                    HStack(spacing: 10) {
+                        PanelButton(title: "Mark Done", style: .primary, palette: palette) {
+                            onAction(.complete)
+                        }
+
+                        PanelButton(title: "Snooze 2 min", style: .secondary, palette: palette) {
+                            onAction(.snooze)
+                        }
+
+                        PanelButton(title: "Open in Reminders", style: .secondary, palette: palette) {
+                            onAction(.open)
+                        }
+
+                        Spacer()
+
+                        PanelButton(title: "Dismiss (esc)", style: .text, palette: palette) {
+                            onAction(.dismiss)
+                        }
                     }
                 }
-
-                Spacer()
-
-                HStack(spacing: 16) {
-                    ReminderButton(
-                        title: "dismiss",
-                        shortcut: "ESC",
-                        color: Color.white.opacity(0.12),
-                        textColor: .white.opacity(0.9)
-                    ) {
-                        onAction(.dismiss)
-                    }
-
-                    ReminderButton(
-                        title: "snooze (2min)",
-                        shortcut: "S",
-                        color: Color.orange.opacity(0.85),
-                        textColor: .white
-                    ) {
-                        onAction(.snooze)
-                    }
-
-                    ReminderButton(
-                        title: "open",
-                        shortcut: "O",
-                        color: Color.white.opacity(0.12),
-                        textColor: .white.opacity(0.9)
-                    ) {
-                        onAction(.open)
-                    }
-
-                    ReminderButton(
-                        title: "done",
-                        shortcut: "↩",
-                        color: Color.green,
-                        textColor: .white,
-                        isPrimary: true
-                    ) {
-                        onAction(.complete)
-                    }
-                }
-                .padding(.horizontal, 60)
-                .padding(.bottom, 60)
+                .padding(.top, 42)
+                .padding(.horizontal, 46)
+                .padding(.bottom, 34)
             }
+            .frame(width: 680, height: 400)
+            .background(palette.background)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: .black.opacity(0.45), radius: 40, x: 0, y: 24)
         }
         .onAppear {
-            updateTimeRemaining()
             timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                updateTimeRemaining()
-            }
-            withAnimation(Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                pulseAnimation = true
+                now = Date()
             }
         }
         .onDisappear {
@@ -130,78 +102,25 @@ struct ReminderAlertView: View {
         }
     }
 
-    private func updateTimeRemaining() {
-        guard let dueDate = reminder.dueDateComponents?.date else {
-            timeRemaining = "Reminder Due Now"
-            return
-        }
-
-        let now = Date()
-        let interval = dueDate.timeIntervalSince(now)
-
-        if interval <= 0 {
-            timeRemaining = "Reminder Due Now"
-        } else {
-            let minutes = Int(interval) / 60
-
-            if minutes > 0 {
-                timeRemaining = "Reminder Due In \(minutes) min\(minutes == 1 ? "" : "s")"
+    private var dueLine: some View {
+        let interval = reminder.dueDateComponents?.date?.timeIntervalSince(now) ?? 0
+        return Group {
+            if interval <= 0 {
+                (Text("Due ") + Text("now").fontWeight(.bold).foregroundColor(palette.accent))
+            } else if interval < 60 {
+                (Text("Due in ") + Text("\(Int(interval)) seconds").fontWeight(.bold).foregroundColor(palette.accent))
             } else {
-                let seconds = Int(interval)
-                timeRemaining = "Reminder Due In \(seconds) sec\(seconds == 1 ? "" : "s")"
+                let m = Int(interval) / 60
+                (Text("Due in ") + Text("\(m) minute\(m == 1 ? "" : "s")").fontWeight(.bold).foregroundColor(palette.accent))
             }
         }
+        .font(.system(size: 17, weight: .medium))
+        .foregroundColor(palette.textTertiary)
     }
 
-    private func formatDateHeader(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE, MMM d • h:mm a"
-        return formatter.string(from: date)
-    }
-}
-
-struct ReminderButton: View {
-    let title: String
-    let shortcut: String
-    let color: Color
-    let textColor: Color
-    var isPrimary: Bool = false
-
-    let action: () -> Void
-
-    @State private var isHovered = false
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Text(title)
-                    .font(.system(size: 17, weight: isPrimary ? .semibold : .medium))
-                    .foregroundColor(textColor)
-
-                Text(shortcut)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(textColor.opacity(0.6))
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 72)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(color)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .strokeBorder(
-                                isPrimary ? Color.green.opacity(0.5) : Color.clear,
-                                lineWidth: isPrimary ? 2 : 0
-                            )
-                    )
-                    .shadow(color: isPrimary ? Color.green.opacity(0.3) : Color.clear, radius: 12, x: 0, y: 4)
-            )
-            .scaleEffect(isHovered ? 1.02 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: isHovered)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .onHover { hovering in
-            isHovered = hovering
-        }
+    private var clockString: String {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        return f.string(from: now)
     }
 }
