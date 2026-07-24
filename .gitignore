@@ -6,3 +6,6 @@ DerivedData/
 
 # Local design explorations (Claude Design exports) - reference material, not source
 Reveille Mac App UX Redesign/
+
+# Stale docs from the original MacAlert project - removed, keep untracked if recreated
+UI_IMPROVEMENTS.md
