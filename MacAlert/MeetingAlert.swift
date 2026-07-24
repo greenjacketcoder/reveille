@@ -64,21 +64,68 @@ struct AlertPalette {
     }
 }
 
-// MARK: - Meeting provider detection (for the "Join Google Meet" button + link badge)
+// MARK: - Meeting link detection (host-allowlisted)
 
+/// Central authority for what counts as a meeting link. Matching is done on
+/// the parsed URL's host against an allowlist - never by substring on the
+/// full URL string. Calendar events are untrusted input (anyone can email an
+/// invite that lands in the calendar), and substring matching let a crafted
+/// URL like https://evil.example/?r=https://zoom.us/ earn a trusted,
+/// provider-labeled Join button. Web schemes must be https.
+enum MeetingLinkDetector {
+    struct Provider {
+        let name: String
+        let badgeLetter: String
+        /// Exact hosts and registrable domains (subdomains of these match).
+        let domains: [String]
+    }
+
+    static let providers: [Provider] = [
+        Provider(name: "Zoom", badgeLetter: "Z", domains: ["zoom.us"]),
+        Provider(name: "Google Meet", badgeLetter: "M", domains: ["meet.google.com"]),
+        Provider(name: "Microsoft Teams", badgeLetter: "T", domains: ["teams.microsoft.com", "teams.live.com"]),
+        Provider(name: "Discord", badgeLetter: "D", domains: ["discord.gg", "discord.com"]),
+        Provider(name: "Slack", badgeLetter: "S", domains: ["slack.com"]),
+    ]
+
+    /// Returns the matching provider if this URL is a legitimate meeting
+    /// link per the allowlist, nil otherwise.
+    static func provider(for url: URL) -> Provider? {
+        guard let scheme = url.scheme?.lowercased() else { return nil }
+
+        if scheme == "facetime" || scheme == "facetime-audio" {
+            return Provider(name: "FaceTime", badgeLetter: "F", domains: [])
+        }
+
+        // Web meeting links must be https - no http, and no other schemes.
+        guard scheme == "https", let host = url.host?.lowercased() else { return nil }
+
+        for provider in providers {
+            for domain in provider.domains {
+                if host == domain || host.hasSuffix("." + domain) {
+                    return provider
+                }
+            }
+        }
+        return nil
+    }
+
+    static func isMeetingURL(_ url: URL) -> Bool {
+        provider(for: url) != nil
+    }
+}
+
+// Kept as the view-facing type; now just a thin wrapper over the detector.
 struct MeetingProvider {
     let name: String
     let badgeLetter: String
 
     static func detect(from url: URL?) -> MeetingProvider? {
-        guard let s = url?.absoluteString.lowercased() else { return nil }
-        if s.contains("zoom.us") { return MeetingProvider(name: "Zoom", badgeLetter: "Z") }
-        if s.contains("meet.google.com") { return MeetingProvider(name: "Google Meet", badgeLetter: "M") }
-        if s.contains("teams.microsoft.com") { return MeetingProvider(name: "Microsoft Teams", badgeLetter: "T") }
-        if s.contains("discord") { return MeetingProvider(name: "Discord", badgeLetter: "D") }
-        if s.contains("slack.com") { return MeetingProvider(name: "Slack", badgeLetter: "S") }
-        if s.contains("facetime") { return MeetingProvider(name: "FaceTime", badgeLetter: "F") }
-        return MeetingProvider(name: "Meeting", badgeLetter: "•")
+        guard let url = url else { return nil }
+        if let p = MeetingLinkDetector.provider(for: url) {
+            return MeetingProvider(name: p.name, badgeLetter: p.badgeLetter)
+        }
+        return nil
     }
 }
 

@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Meeting-link detection now matches the parsed URL host against a provider allowlist instead of substring-matching the whole URL. Previously, a crafted calendar invite with a URL like `https://evil.example/?r=https://zoom.us/` would earn a trusted, provider-labeled Join button; lookalike and suffix-spoofed domains are now rejected, and web meeting links must be `https`.
+- Personal Meeting Links now require `https` (or FaceTime's scheme); plain `http` links are rejected.
+- Release pipeline hardening: the Sparkle CLI tools download is verified against a pinned SHA-256 before signing, and GitHub Actions are pinned to commit SHAs. Dependabot keeps both fresh, and CodeQL scanning runs on every push.
+
 ### Changed
 - The built app and its executable are now named `Reveille` (previously `MacAlert` internally), so the running process appears as "Reveille" in Activity Monitor instead of the old internal name. The bundle identifier is unchanged, so existing permissions, preferences, and updates carry over.
+- The About tab shows just the version number, without the internal build counter.
 
 ### Fixed
 - Preferences and Quick Add windows are now released when closed instead of staying resident for the app's lifetime, so memory no longer accumulates after each interaction.

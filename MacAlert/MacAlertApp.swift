@@ -458,16 +458,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func findMeetingURL(in event: EKEvent) -> URL? {
-        let urlPatterns = [
-            "https://zoom.us/",
-            "https://meet.google.com/",
-            "https://teams.microsoft.com/",
-            "https://discord.gg/",
-            "https://slack.com/",
-            "facetime://"
-        ]
-
-        if let url = event.url, urlPatterns.contains(where: { url.absoluteString.contains($0) }) {
+        // Host-allowlisted matching via MeetingLinkDetector - see its docs.
+        // Calendar event contents are untrusted input.
+        if let url = event.url, MeetingLinkDetector.isMeetingURL(url) {
             return url
         }
 
@@ -479,7 +472,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for match in matches ?? [] {
             if let range = Range(match.range, in: searchText),
                let url = URL(string: String(searchText[range])),
-               urlPatterns.contains(where: { url.absoluteString.contains($0) }) {
+               MeetingLinkDetector.isMeetingURL(url) {
                 return url
             }
         }

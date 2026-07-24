@@ -5,6 +5,9 @@
 
 name: Swift
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ "main" ]
@@ -16,7 +19,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
     - name: Show available schemes (debug aid)
       run: xcodebuild -list -project MacAlert.xcodeproj

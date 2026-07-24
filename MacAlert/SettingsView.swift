@@ -294,11 +294,13 @@ struct MeetingLinksView: View {
     @State private var newLinkName = ""
     @State private var newLinkURL = ""
 
-    /// Accepts web URLs plus the meeting schemes Reveille already detects.
+    /// Saved links open in the browser on one click, so require https (or
+    /// FaceTime's scheme) - plain http would send meeting access over
+    /// cleartext and is never what a real meeting provider uses.
     private var urlIsValid: Bool {
         let trimmed = newLinkURL.trimmingCharacters(in: .whitespaces)
         guard let url = URL(string: trimmed), let scheme = url.scheme?.lowercased() else { return false }
-        return ["http", "https", "facetime"].contains(scheme)
+        return ["https", "facetime"].contains(scheme)
     }
 
     private var canAdd: Bool {

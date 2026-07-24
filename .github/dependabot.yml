@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Keep GitHub Actions pinned-but-fresh: Dependabot proposes SHA bumps
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Swift Package Manager dependencies (currently just Sparkle)
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
