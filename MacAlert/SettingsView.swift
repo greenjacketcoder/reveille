@@ -58,8 +58,6 @@ class SettingsManager: ObservableObject {
 struct SettingsView: View {
     @ObservedObject var settings: SettingsManager
     @State private var selectedTab: String
-    @State private var newLinkName = ""
-    @State private var newLinkURL = ""
 
     init(settings: SettingsManager, initialTab: String = "general") {
         self.settings = settings
@@ -115,69 +113,63 @@ struct AboutSettingsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 16) {
-                Image(systemName: "bell.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.accentColor)
-                    .frame(width: 60, height: 60)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.accentColor.opacity(0.15))
-                    )
+        Form {
+            Section {
+                HStack(spacing: 16) {
+                    // The actual app icon, so this stays in sync with branding
+                    // instead of hardcoding an SF Symbol stand-in.
+                    Image(nsImage: NSApp.applicationIconImage)
+                        .resizable()
+                        .frame(width: 64, height: 64)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Reveille")
-                        .font(.title2)
-                        .bold()
-                    Text("Version \(appVersion) (\(buildNumber))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Reveille")
+                            .font(.title2)
+                            .bold()
+                        Text("Version \(appVersion) (\(buildNumber))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("Free, open-source meeting alerts. No accounts, no telemetry.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
+            Section("Links") {
+                Button {
+                    if let url = URL(string: "https://github.com/greenjacketcoder/reveille") {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Label("View on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
+                }
+
+                Button {
+                    if let url = URL(string: "https://github.com/greenjacketcoder/reveille/issues") {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Label("Report an Issue", systemImage: "exclamationmark.bubble")
+                }
+
+                Button {
+                    if let url = URL(string: "https://github.com/greenjacketcoder/reveille/blob/main/README.md") {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Label("Read the Documentation", systemImage: "doc.text")
                 }
             }
 
-            Text("A free, open-source macOS meeting reminder app — full-screen alerts, no accounts, no telemetry.")
-                .font(.body)
-                .foregroundColor(.secondary)
-
-            Form {
-                Section(header: Text("Links")) {
-                    Button {
-                        if let url = URL(string: "https://github.com/greenjacketcoder/reveille") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    } label: {
-                        Label("View on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
-                    }
-
-                    Button {
-                        if let url = URL(string: "https://github.com/greenjacketcoder/reveille/issues") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    } label: {
-                        Label("Report an Issue", systemImage: "exclamationmark.bubble")
-                    }
-
-                    Button {
-                        if let url = URL(string: "https://github.com/greenjacketcoder/reveille/blob/main/README.md") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    } label: {
-                        Label("Read the Documentation", systemImage: "doc.text")
-                    }
-                }
-
-                Section(header: Text("License")) {
-                    Text("MIT License — free to use, modify, and distribute.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+            Section("License") {
+                Text("MIT License — free to use, modify, and distribute.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            .formStyle(.grouped)
-
-            Spacer()
         }
-        .padding()
+        .formStyle(.grouped)
     }
 }
 
@@ -186,24 +178,23 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Sync Settings")) {
-                Picker("Sync Interval:", selection: $settings.syncInterval) {
-                    Text("30 seconds (Fast)").tag(30)
+            Section("Syncing") {
+                Picker("Check calendars every", selection: $settings.syncInterval) {
+                    Text("30 seconds").tag(30)
                     Text("1 minute").tag(60)
                     Text("3 minutes").tag(180)
                     Text("5 minutes").tag(300)
                 }
-                .pickerStyle(.inline)
 
                 if settings.syncInterval == 30 {
-                    Text("Fast sync may use more battery")
+                    Label("Fast sync may use more battery", systemImage: "battery.25")
                         .font(.caption)
                         .foregroundColor(.orange)
                 }
             }
 
-            Section(header: Text("Alert Timing")) {
-                Picker("Alert before meeting:", selection: $settings.alertMinutesBefore) {
+            Section("Alerts") {
+                Picker("Alert before meeting", selection: $settings.alertMinutesBefore) {
                     Text("1 minute").tag(1)
                     Text("3 minutes").tag(3)
                     Text("5 minutes").tag(5)
@@ -212,15 +203,15 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Section(header: Text("Reminders")) {
+            Section {
                 Toggle("Include Apple Reminders", isOn: $settings.includeReminders)
-                Text("Show alerts for upcoming reminders with due dates")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            } header: {
+                Text("Reminders")
+            } footer: {
+                Text("Show full-screen alerts for reminders with due dates. Requires Reminders access.")
             }
         }
         .formStyle(.grouped)
-        .padding()
     }
 }
 
@@ -230,40 +221,48 @@ struct SoundsSettingsView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Alert Sound")) {
+            Section("Alert Sound") {
                 Toggle("Play sound with alerts", isOn: $settings.soundEnabled)
 
                 if settings.soundEnabled {
-                    Picker("Sound:", selection: $settings.selectedSound) {
-                        ForEach(availableSounds, id: \.self) { sound in
-                            HStack {
-                                Text(sound)
-                                Spacer()
-                                Button(action: { playSound(sound) }) {
-                                    Image(systemName: "play.circle")
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                    HStack {
+                        Picker("Sound", selection: $settings.selectedSound) {
+                            ForEach(availableSounds, id: \.self) { sound in
+                                Text(sound).tag(sound)
                             }
-                            .tag(sound)
+                        }
+
+                        Button {
+                            playPreview()
+                        } label: {
+                            Label("Preview", systemImage: "play.fill")
                         }
                     }
-                    .pickerStyle(.inline)
 
-                    HStack {
-                        Text("Volume:")
+                    HStack(spacing: 10) {
+                        Image(systemName: "speaker.fill")
+                            .foregroundColor(.secondary)
                         Slider(value: $settings.soundVolume, in: 0...1)
+                        Image(systemName: "speaker.wave.3.fill")
+                            .foregroundColor(.secondary)
                         Text("\(Int(settings.soundVolume * 100))%")
-                            .frame(width: 45)
+                            .monospacedDigit()
+                            .frame(width: 44, alignment: .trailing)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
         }
         .formStyle(.grouped)
-        .padding()
     }
 
-    private func playSound(_ sound: String) {
-        NSSound(named: sound)?.play()
+    /// Preview at the configured alert volume, so what you hear here is
+    /// what an actual alert will sound like.
+    private func playPreview() {
+        if let sound = NSSound(named: settings.selectedSound) {
+            sound.volume = Float(settings.soundVolume)
+            sound.play()
+        }
     }
 }
 
@@ -272,73 +271,89 @@ struct MeetingLinksView: View {
     @State private var newLinkName = ""
     @State private var newLinkURL = ""
 
+    /// Accepts web URLs plus the meeting schemes Reveille already detects.
+    private var urlIsValid: Bool {
+        let trimmed = newLinkURL.trimmingCharacters(in: .whitespaces)
+        guard let url = URL(string: trimmed), let scheme = url.scheme?.lowercased() else { return false }
+        return ["http", "https", "facetime"].contains(scheme)
+    }
+
+    private var canAdd: Bool {
+        !newLinkName.trimmingCharacters(in: .whitespaces).isEmpty && urlIsValid
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Personal Meeting Links")
-                .font(.title2)
-                .bold()
+        Form {
+            Section {
+                TextField("Name", text: $newLinkName, prompt: Text("e.g. My Zoom Room"))
+                TextField("URL", text: $newLinkURL, prompt: Text("https://zoom.us/j/…"))
+                    .onSubmit { addLink() }
 
-            Text("Save your personal meeting room URLs for quick access")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            Form {
-                Section(header: Text("Add New Link")) {
-                    TextField("Name (e.g., My Zoom Room)", text: $newLinkName)
-                    TextField("URL", text: $newLinkURL)
-
-                    Button("Add Link") {
-                        if !newLinkName.isEmpty && !newLinkURL.isEmpty {
-                            settings.personalMeetingLinks[newLinkName] = newLinkURL
-                            newLinkName = ""
-                            newLinkURL = ""
-                        }
+                HStack {
+                    if !newLinkURL.isEmpty && !urlIsValid {
+                        Label("Enter a valid link starting with https://", systemImage: "exclamationmark.triangle")
+                            .font(.caption)
+                            .foregroundColor(.orange)
                     }
-                    .disabled(newLinkName.isEmpty || newLinkURL.isEmpty)
+                    Spacer()
+                    Button("Add Link") { addLink() }
+                        .disabled(!canAdd)
+                        .keyboardShortcut(.defaultAction)
                 }
+            } header: {
+                Text("Add New Link")
+            } footer: {
+                Text("Saved links appear in the menu bar and can auto-fill the Quick Add Meeting form.")
+            }
 
-                Section(header: Text("Saved Links")) {
-                    if settings.personalMeetingLinks.isEmpty {
-                        Text("No saved links")
-                            .foregroundColor(.secondary)
-                            .italic()
-                    } else {
-                        ForEach(Array(settings.personalMeetingLinks.keys.sorted()), id: \.self) { key in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(key)
-                                        .font(.headline)
-                                    Text(settings.personalMeetingLinks[key] ?? "")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                Spacer()
-                                Button(action: {
-                                    if let url = URL(string: settings.personalMeetingLinks[key] ?? "") {
-                                        NSWorkspace.shared.open(url)
-                                    }
-                                }) {
-                                    Image(systemName: "arrow.up.forward.square")
-                                }
-                                .buttonStyle(PlainButtonStyle())
-
-                                Button(action: {
-                                    settings.personalMeetingLinks.removeValue(forKey: key)
-                                }) {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.red)
-                                }
-                                .buttonStyle(PlainButtonStyle())
+            Section("Saved Links") {
+                if settings.personalMeetingLinks.isEmpty {
+                    Label("No saved links yet", systemImage: "link.badge.plus")
+                        .foregroundColor(.secondary)
+                } else {
+                    ForEach(Array(settings.personalMeetingLinks.keys.sorted()), id: \.self) { key in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(key)
+                                Text(settings.personalMeetingLinks[key] ?? "")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
                             }
+                            Spacer()
+                            Button {
+                                if let url = URL(string: settings.personalMeetingLinks[key] ?? "") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            } label: {
+                                Image(systemName: "arrow.up.forward.square")
+                            }
+                            .buttonStyle(.plain)
+                            .help("Open link")
+
+                            Button {
+                                settings.personalMeetingLinks.removeValue(forKey: key)
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Delete link")
                         }
                     }
                 }
             }
-            .formStyle(.grouped)
-
-            Spacer()
         }
-        .padding()
+        .formStyle(.grouped)
+    }
+
+    private func addLink() {
+        guard canAdd else { return }
+        settings.personalMeetingLinks[newLinkName.trimmingCharacters(in: .whitespaces)] =
+            newLinkURL.trimmingCharacters(in: .whitespaces)
+        newLinkName = ""
+        newLinkURL = ""
     }
 }
 
@@ -346,59 +361,54 @@ struct CalendarsSettingsView: View {
     @State private var calendars: [EKCalendar] = []
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Connected Calendars")
-                .font(.title2)
-                .bold()
-
-            Form {
-                Section {
-                    if calendars.isEmpty {
-                        Text("Loading calendars...")
-                            .foregroundColor(.secondary)
-                    } else {
-                        ForEach(calendars, id: \.calendarIdentifier) { calendar in
-                            HStack {
-                                Circle()
-                                    .fill(Color(calendar.color))
-                                    .frame(width: 12, height: 12)
-                                Text(calendar.title)
-                                Spacer()
-                                Text(calendar.source.title)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
+        Form {
+            Section("Connected Calendars") {
+                if calendars.isEmpty {
+                    Label("Loading calendars…", systemImage: "arrow.triangle.2.circlepath")
+                        .foregroundColor(.secondary)
+                } else {
+                    ForEach(calendars, id: \.calendarIdentifier) { calendar in
+                        HStack {
+                            Circle()
+                                .fill(Color(calendar.color))
+                                .frame(width: 12, height: 12)
+                            Text(calendar.title)
+                            Spacer()
+                            Text(calendar.source.title)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                     }
                 }
-
-                Section(header: Text("Sync Timing")) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Reveille reads whatever your Mac's Calendar app already has synced — it doesn't sync accounts itself.")
-                        Text("• iCloud calendars: typically sync within about a minute")
-                        Text("• Google/Outlook calendars: usually sync within a few minutes, depending on how they were added (Internet Accounts vs. a native app)")
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-
-                Section(header: Text("Troubleshooting")) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("If a calendar or its events aren't showing up:")
-                        Text("1. Open Calendar.app and confirm the calendar is enabled and syncing there first")
-                        Text("2. Check System Settings > Privacy & Security > Calendars to confirm Reveille has access")
-                        Text("3. If you enabled Reminders alerts, also check the Reminders row in that same Privacy pane")
-                        Text("4. Still stuck? Quit and relaunch Reveille — it re-reads calendars fresh on launch")
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
             }
-            .formStyle(.grouped)
 
-            Spacer()
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Reveille reads whatever your Mac's Calendar app already has synced — it doesn't sync accounts itself.")
+                    Text("• iCloud calendars: typically sync within about a minute")
+                    Text("• Google/Outlook calendars: usually sync within a few minutes, depending on how they were added (Internet Accounts vs. a native app)")
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
+            } header: {
+                Text("Sync Timing")
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("If a calendar or its events aren't showing up:")
+                    Text("1. Open Calendar.app and confirm the calendar is enabled and syncing there first")
+                    Text("2. Check System Settings > Privacy & Security > Calendars to confirm Reveille has access")
+                    Text("3. If you enabled Reminders alerts, also check the Reminders row in that same Privacy pane")
+                    Text("4. Still stuck? Quit and relaunch Reveille — it re-reads calendars fresh on launch")
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
+            } header: {
+                Text("Troubleshooting")
+            }
         }
-        .padding()
+        .formStyle(.grouped)
         .onAppear {
             loadCalendars()
         }

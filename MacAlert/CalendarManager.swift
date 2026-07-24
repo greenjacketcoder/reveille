@@ -42,6 +42,18 @@ class CalendarManager {
         }.sorted { $0.startDate < $1.startDate }
     }
 
+    /// All of today's events (midnight to midnight), for the alert's agenda rail.
+    func getTodaysEvents() -> [EKEvent] {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return [] }
+
+        let predicate = eventStore.predicateForEvents(withStart: startOfDay, end: endOfDay, calendars: nil)
+        return eventStore.events(matching: predicate)
+            .filter { !$0.isAllDay }
+            .sorted { $0.startDate < $1.startDate }
+    }
+
     func getUpcomingReminders(withinMinutes minutes: Int) -> [EKReminder] {
         let calendars = eventStore.calendars(for: .reminder)
         let now = Date()

@@ -22,6 +22,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var alertWindow: NSWindow?
     var settingsWindow: NSWindow?
     var quickEventWindow: NSWindow?
+
+    /// Debug-screenshot only: force light/dark on alert windows so both
+    /// schemes can be captured regardless of the system appearance.
+    var debugForcedAppearance: NSAppearance?
     // Local monitor for the alert window's keyboard shortcuts. Using a
     // monitor rather than relying on NSHostingController.keyDown, since
     // SwiftUI's own view hierarchy can intercept key events at a lower
@@ -86,16 +90,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             case "quickadd":
                 self.showQuickEvent()
             case "meeting-alert":
-                let fakeEvent = EKEvent(eventStore: EKEventStore())
-                fakeEvent.title = "Product Sync"
-                fakeEvent.startDate = Date().addingTimeInterval(240)
-                fakeEvent.endDate = Date().addingTimeInterval(1800)
-                fakeEvent.location = "https://zoom.us/j/1234567890"
-                fakeEvent.notes = "Weekly product sync with the team."
-                self.showAlert(for: fakeEvent)
+                // Fake event + agenda mirroring the design mock, so screenshots
+                // show the sidebar populated the way real usage would.
+                let store = EKEventStore()
+                let cal = Calendar.current
+                let today = cal.startOfDay(for: Date())
+
+                func fake(_ title: String, hour: Int, minute: Int, durationMin: Int) -> EKEvent {
+                    let e = EKEvent(eventStore: store)
+                    e.title = title
+                    e.startDate = cal.date(bySettingHour: hour, minute: minute, second: 0, of: today)
+                    e.endDate = e.startDate.addingTimeInterval(TimeInterval(durationMin * 60))
+                    return e
+                }
+
+                let nowComp = cal.dateComponents([.hour, .minute], from: Date())
+                let nextEvent = EKEvent(eventStore: store)
+                nextEvent.title = "Design Review — Q3 Roadmap"
+                nextEvent.startDate = Date().addingTimeInterval(120)
+                nextEvent.endDate = nextEvent.startDate.addingTimeInterval(1800)
+                nextEvent.location = "https://meet.google.com/hwq-rfzp"
+                nextEvent.notes = "Walking the Q3 roadmap with the design team."
+
+                let agenda = [
+                    fake("Standup", hour: max((nowComp.hour ?? 10) - 1, 0), minute: 0, durationMin: 15),
+                    nextEvent,
+                    fake("1:1 · Jordan", hour: min((nowComp.hour ?? 10) + 3, 22), minute: 30, durationMin: 30),
+                    fake("Ship review", hour: min((nowComp.hour ?? 10) + 6, 23), minute: 0, durationMin: 30),
+                ]
+
+                if arg == "light" || arg == "dark" {
+                    self.debugForcedAppearance = NSAppearance(named: arg == "dark" ? .darkAqua : .aqua)
+                }
+                self.showAlert(for: nextEvent, agendaOverride: agenda)
             case "reminder-alert":
                 let fakeReminder = EKReminder(eventStore: EKEventStore())
                 fakeReminder.title = "Follow up with client"
+                if arg == "light" || arg == "dark" {
+                    self.debugForcedAppearance = NSAppearance(named: arg == "dark" ? .darkAqua : .aqua)
+                }
                 self.showReminderAlert(for: fakeReminder)
             default:
                 break
@@ -241,7 +274,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func showAlert(for event: EKEvent) {
+    func showAlert(for event: EKEvent, agendaOverride: [EKEvent]? = nil) {
         DispatchQueue.main.async {
             if self.alertWindow != nil {
                 self.alertWindow?.close()
@@ -251,7 +284,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.playAlertSound()
             }
 
-            let meetingAlert = MeetingAlertView(event: event) { action in
+            let todaysEvents = agendaOverride ?? self.calendarManager?.getTodaysEvents() ?? []
+            let meetingURL = self.findMeetingURL(in: event)
+
+            let meetingAlert = MeetingAlertView(
+                event: event,
+                todaysEvents: todaysEvents,
+                meetingURL: meetingURL
+            ) { action in
                 self.handleAlertAction(action, for: event)
             }
 
@@ -264,6 +304,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.isOpaque = false
             window.hasShadow = true
             window.isMovable = false
+            if let forced = self.debugForcedAppearance {
+                window.appearance = forced
+            }
 
             if let screen = NSScreen.main {
                 window.setFrame(screen.frame, display: true)
@@ -317,6 +360,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.isOpaque = false
             window.hasShadow = true
             window.isMovable = false
+            if let forced = self.debugForcedAppearance {
+                window.appearance = forced
+            }
 
             if let screen = NSScreen.main {
                 window.setFrame(screen.frame, display: true)
@@ -541,7 +587,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let window = NSWindow(contentViewController: hostingController)
         window.title = "Reveille Preferences"
         window.styleMask = [.titled, .closable, .resizable]
-        window.setContentSize(NSSize(width: 700, height: 500))
+        window.setContentSize(NSSize(width: 700, height: 560))
         window.center()
         window.collectionBehavior = [.canJoinAllSpaces]
 
