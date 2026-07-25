@@ -34,6 +34,34 @@ final class MeetingLinkDetectorTests: XCTestCase {
         XCTAssertEqual(name("https://myteam.slack.com/archives/x"), "Slack")
     }
 
+    func testAcceptsWebex() {
+        XCTAssertEqual(name("https://mycompany.webex.com/meet/user"), "Webex")
+    }
+
+    func testAcceptsGoToMeeting() {
+        XCTAssertEqual(name("https://gotomeet.me/roomname"), "GoToMeeting")
+    }
+
+    func testAcceptsWhereby() {
+        XCTAssertEqual(name("https://whereby.com/roomname"), "Whereby")
+    }
+
+    func testAcceptsJitsi() {
+        XCTAssertEqual(name("https://meet.jit.si/roomname"), "Jitsi")
+    }
+
+    func testAcceptsRingCentral() {
+        XCTAssertEqual(name("https://v.ringcentral.com/join/123456789"), "RingCentral")
+    }
+
+    func testAcceptsBlueJeans() {
+        XCTAssertEqual(name("https://bluejeans.com/123456789"), "BlueJeans")
+    }
+
+    func testAcceptsSkype() {
+        XCTAssertEqual(name("https://join.skype.com/abcdef123456"), "Skype")
+    }
+
     func testAcceptsFaceTimeScheme() {
         XCTAssertEqual(name("facetime://user@example.com"), "FaceTime")
     }

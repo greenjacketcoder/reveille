@@ -26,6 +26,13 @@ public enum MeetingLinkDetector {
         Provider(name: "Microsoft Teams", badgeLetter: "T", domains: ["teams.microsoft.com", "teams.live.com"]),
         Provider(name: "Discord", badgeLetter: "D", domains: ["discord.gg", "discord.com"]),
         Provider(name: "Slack", badgeLetter: "S", domains: ["slack.com"]),
+        Provider(name: "Webex", badgeLetter: "W", domains: ["webex.com"]),
+        Provider(name: "GoToMeeting", badgeLetter: "G", domains: ["gotomeeting.com", "gotomeet.me"]),
+        Provider(name: "Whereby", badgeLetter: "W", domains: ["whereby.com"]),
+        Provider(name: "Jitsi", badgeLetter: "J", domains: ["meet.jit.si", "jitsi.org"]),
+        Provider(name: "RingCentral", badgeLetter: "R", domains: ["ringcentral.com", "v.ringcentral.com"]),
+        Provider(name: "BlueJeans", badgeLetter: "B", domains: ["bluejeans.com"]),
+        Provider(name: "Skype", badgeLetter: "S", domains: ["skype.com", "join.skype.com"]),
     ]
 
     /// Returns the matching provider if this URL is a legitimate meeting
