@@ -6,6 +6,20 @@
         <description>Updates to Reveille, the free macOS meeting alert app.</description>
         <language>en</language>
         <item>
+            <title>Version 0.1.5</title>
+            <sparkle:releaseNotesLink>https://github.com/greenjacketcoder/reveille/releases/tag/v0.1.5</sparkle:releaseNotesLink>
+            <pubDate>Mon, 27 Jul 2026 14:18:54 +0000</pubDate>
+            <enclosure
+                url="https://github.com/greenjacketcoder/reveille/releases/download/v0.1.5/Reveille-0.1.5.dmg"
+                sparkle:version="6"
+                sparkle:shortVersionString="0.1.5"
+                length="2685245"
+                type="application/octet-stream"
+                sparkle:edSignature="4ET4jwKZpnPKoBVPAelnPoT3tRaYV6D6pAP+SCLgA5L5qNP/7FJGx/o0FdkySkNoTCm30WOrF91zbi/dHWq9CQ=="
+            />
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+        </item>
+        <item>
             <title>Version 0.1.4</title>
             <sparkle:releaseNotesLink>https://github.com/greenjacketcoder/reveille/releases/tag/v0.1.4</sparkle:releaseNotesLink>
             <pubDate>Fri, 24 Jul 2026 21:32:18 +0000</pubDate>
