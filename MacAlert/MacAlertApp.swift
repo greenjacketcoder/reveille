@@ -128,25 +128,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         button.title = " " + menuBarString(for: next)
     }
 
-    /// "Standup · 4m" style label, truncating long titles.
+    /// "Standup · 4m" style label. Delegates to the tested AlertScheduling
+    /// logic in the MeetingLink package.
     private func menuBarString(for event: EKEvent) -> String {
         let mins = Int(event.startDate.timeIntervalSinceNow / 60)
-        let countdown: String
-        if mins < 1 {
-            countdown = "now"
-        } else if mins < 60 {
-            countdown = "\(mins)m"
-        } else {
-            let h = mins / 60, m = mins % 60
-            countdown = m == 0 ? "\(h)h" : "\(h)h \(m)m"
-        }
-
-        var title = event.title ?? "Meeting"
-        let maxLen = 24
-        if title.count > maxLen {
-            title = String(title.prefix(maxLen - 1)) + "…"
-        }
-        return "\(title) · \(countdown)"
+        return AlertScheduling.menuBarString(title: event.title, minutesUntilStart: mins)
     }
 
     /// Lets us pop open any window on demand for screenshotting/UX review,
@@ -370,15 +356,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updateMenuBarTitle()
     }
 
-    /// Dedup key for "already alerted this event." Recurring events share one
-    /// eventIdentifier across every occurrence, so identifier alone would
-    /// suppress alerts for a later occurrence of the same series on the same
-    /// day. Combining it with the occurrence's start time keeps occurrences
-    /// distinct while still de-duplicating repeat checks of the same one.
+    /// Dedup key for "already alerted this event occurrence." Delegates to the
+    /// tested AlertScheduling logic (recurring events share one identifier
+    /// across occurrences, so the key combines identifier + start time).
     private func alertKey(for event: EKEvent) -> String {
-        let identifier = event.eventIdentifier ?? "unknown"
-        let start = event.startDate.timeIntervalSince1970
-        return "\(identifier)@\(Int(start))"
+        AlertScheduling.alertKey(identifier: event.eventIdentifier, start: event.startDate)
     }
 
     private var shownAlerts = Set<String>()
@@ -538,22 +520,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             closeAlert()
         case .snooze:
             closeAlert()
-            // Re-fire precisely after the snooze interval rather than relying
-            // on the next poll (which can be up to `syncInterval` — as much as
-            // 5 min — away, landing the re-alert well after the meeting starts).
+            // Re-fire precisely after the (smart-capped) snooze interval
+            // rather than relying on the next poll. See AlertScheduling.
             let key = alertKey(for: event)
             shownAlerts.remove(key)
-            // Smart cap: never snooze past the meeting. If the chosen duration
-            // would land at/after the start, snooze only until 1 min before
-            // start instead, so you still get a heads-up.
-            let chosen = TimeInterval(settings.snoozeMinutes * 60)
-            let untilStart = event.startDate.timeIntervalSinceNow
-            let snooze: TimeInterval
-            if untilStart - chosen < 60 {
-                snooze = max(untilStart - 60, 1)  // 1 min before start, min 1s
-            } else {
-                snooze = chosen
-            }
+            let snooze = AlertScheduling.snoozeDelay(
+                chosenMinutes: settings.snoozeMinutes,
+                secondsUntilStart: event.startDate.timeIntervalSinceNow
+            )
             DispatchQueue.main.asyncAfter(deadline: .now() + snooze) { [weak self] in
                 guard let self = self else { return }
                 // Only re-alert if it's still upcoming and not already re-shown.

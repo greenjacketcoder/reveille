@@ -10,7 +10,6 @@
 		AA0000010000000000000001 /* MacAlertApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000020000000000000001 /* MacAlertApp.swift */; };
 		AA0000030000000000000001 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000040000000000000001 /* CalendarManager.swift */; };
 		AA0000050000000000000001 /* MeetingAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000060000000000000001 /* MeetingAlert.swift */; };
-		AA0000070000000000000001 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000080000000000000001 /* MenuBarController.swift */; };
 		AA0000090000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA00000A0000000000000001 /* Assets.xcassets */; };
 		AA00000D0000000000000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000E0000000000000002 /* SettingsView.swift */; };
 		AA00000F0000000000000002 /* QuickEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000100000000000000002 /* QuickEventView.swift */; };
@@ -25,7 +24,6 @@
 		AA0000020000000000000001 /* MacAlertApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAlertApp.swift; sourceTree = "<group>"; };
 		AA0000040000000000000001 /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
 		AA0000060000000000000001 /* MeetingAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingAlert.swift; sourceTree = "<group>"; };
-		AA0000080000000000000001 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
 		AA00000A0000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA00000C0000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA00000E0000000000000002 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -63,7 +61,6 @@
 				AA0000020000000000000001 /* MacAlertApp.swift */,
 				AA0000040000000000000001 /* CalendarManager.swift */,
 				AA0000060000000000000001 /* MeetingAlert.swift */,
-				AA0000080000000000000001 /* MenuBarController.swift */,
 				AA00000E0000000000000002 /* SettingsView.swift */,
 				AA0000100000000000000002 /* QuickEventView.swift */,
 				AA0000120000000000000002 /* ReminderAlertView.swift */,
@@ -157,7 +154,6 @@
 				AA0000010000000000000001 /* MacAlertApp.swift in Sources */,
 				AA0000030000000000000001 /* CalendarManager.swift in Sources */,
 				AA0000050000000000000001 /* MeetingAlert.swift in Sources */,
-				AA0000070000000000000001 /* MenuBarController.swift in Sources */,
 				AA00000D0000000000000002 /* SettingsView.swift in Sources */,
 				AA00000F0000000000000002 /* QuickEventView.swift in Sources */,
 				AA0000110000000000000002 /* ReminderAlertView.swift in Sources */,
