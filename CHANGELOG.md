@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Launch at login: an opt-in toggle in Preferences → General to start Reveille automatically when you log in, so a reboot doesn't silently stop meeting alerts. Backed by the system login-items service, so it stays in sync with System Settings.
 - Expanded meeting-provider detection: Webex, GoToMeeting, Whereby, Jitsi, RingCentral, BlueJeans, and Skype (contributed by @Borisserz).
+- About tab now shows a plain-language privacy summary — what Reveille accesses (calendars/reminders, locally), and that there's no account, no analytics, and network is used only for updates and opening links you click.
+- The menu-bar agenda dropdown now also shows today's all-day events and a "Tomorrow" section, instead of only today's remaining timed meetings.
+
+### Changed
+- Full-screen alerts now appear on the display you're actively using (the one with the pointer) rather than always the main display — better for multi-monitor setups.
+- Snooze no longer overshoots a meeting: if the chosen snooze duration would land at or after the start time, it instead re-alerts one minute before the meeting begins.
 
 ## [0.1.4] - 2026-07-24
 

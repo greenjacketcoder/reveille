@@ -8,6 +8,8 @@ import MeetingLink
 /// the plain NSMenu.
 struct AgendaView: View {
     let events: [EKEvent]
+    var allDayEvents: [EKEvent] = []
+    var tomorrowEvents: [EKEvent] = []
     let onJoin: (EKEvent) -> Void
     let onQuickAdd: () -> Void
     let onPreferences: () -> Void
@@ -29,19 +31,36 @@ struct AgendaView: View {
             header
             Divider().overlay(palette.hairline)
 
-            if upcoming.isEmpty {
+            if upcoming.isEmpty && allDayEvents.isEmpty && tomorrowEvents.isEmpty {
                 emptyState
             } else {
                 ScrollView {
                     VStack(spacing: 2) {
+                        // All-day banner (today)
+                        ForEach(Array(allDayEvents.enumerated()), id: \.offset) { _, event in
+                            AllDayRow(event: event, palette: palette)
+                        }
+                        if !allDayEvents.isEmpty && (!upcoming.isEmpty || !tomorrowEvents.isEmpty) {
+                            Divider().overlay(palette.hairline).padding(.vertical, 4)
+                        }
+
+                        // Today's remaining timed events
                         ForEach(Array(upcoming.enumerated()), id: \.offset) { _, event in
                             AgendaRow(event: event, now: now, palette: palette, onJoin: onJoin)
+                        }
+
+                        // Tomorrow
+                        if !tomorrowEvents.isEmpty {
+                            SectionLabel(text: "Tomorrow", palette: palette)
+                            ForEach(Array(tomorrowEvents.enumerated()), id: \.offset) { _, event in
+                                AgendaRow(event: event, now: now, palette: palette, onJoin: onJoin)
+                            }
                         }
                     }
                     .padding(.vertical, 6)
                     .padding(.horizontal, 8)
                 }
-                .frame(maxHeight: 320)
+                .frame(maxHeight: 380)
             }
 
             Divider().overlay(palette.hairline)
@@ -168,6 +187,46 @@ private struct AgendaRow: View {
         let f = DateFormatter()
         f.dateFormat = "h:mm a"
         return f.string(from: event.startDate)
+    }
+}
+
+private struct SectionLabel: View {
+    let text: String
+    let palette: AlertPalette
+
+    var body: some View {
+        HStack {
+            Text(text.uppercased())
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(palette.textQuaternary)
+                .tracking(0.5)
+            Spacer()
+        }
+        .padding(.horizontal, 8)
+        .padding(.top, 10)
+        .padding(.bottom, 2)
+    }
+}
+
+private struct AllDayRow: View {
+    let event: EKEvent
+    let palette: AlertPalette
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text("All day")
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundColor(palette.textTertiary)
+                .frame(width: 46, alignment: .leading)
+            Text(event.title ?? "Untitled")
+                .font(.system(size: 13))
+                .foregroundColor(palette.textPrimary)
+                .lineLimit(1)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 7)
+        .background(RoundedRectangle(cornerRadius: 7).fill(palette.rail))
     }
 }
 

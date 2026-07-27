@@ -61,6 +61,30 @@ class CalendarManager {
         return getTodaysEvents().first { $0.startDate > now }
     }
 
+    /// Today's all-day events (which getTodaysEvents excludes), for the
+    /// agenda dropdown's all-day banner.
+    func getTodaysAllDayEvents() -> [EKEvent] {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return [] }
+        let predicate = eventStore.predicateForEvents(withStart: startOfDay, end: endOfDay, calendars: nil)
+        return eventStore.events(matching: predicate)
+            .filter { $0.isAllDay }
+            .sorted { ($0.title ?? "") < ($1.title ?? "") }
+    }
+
+    /// Tomorrow's timed events, for the agenda dropdown's "Tomorrow" section.
+    func getTomorrowsEvents() -> [EKEvent] {
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        guard let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday),
+              let endOfTomorrow = calendar.date(byAdding: .day, value: 2, to: startOfToday) else { return [] }
+        let predicate = eventStore.predicateForEvents(withStart: startOfTomorrow, end: endOfTomorrow, calendars: nil)
+        return eventStore.events(matching: predicate)
+            .filter { !$0.isAllDay }
+            .sorted { $0.startDate < $1.startDate }
+    }
+
     func getUpcomingReminders(withinMinutes minutes: Int) -> [EKReminder] {
         let calendars = eventStore.calendars(for: .reminder)
         let now = Date()

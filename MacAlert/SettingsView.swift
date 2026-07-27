@@ -229,6 +229,21 @@ struct AboutSettingsView: View {
                 }
             }
 
+            Section {
+                AccessRow(symbol: "calendar", tint: .green,
+                          text: "Reads your calendars and reminders locally, on this Mac")
+                AccessRow(symbol: "person.crop.circle.badge.xmark", tint: .secondary,
+                          text: "No account or sign-in — nothing to log into")
+                AccessRow(symbol: "chart.bar.xaxis", tint: .secondary,
+                          text: "No analytics, tracking, or telemetry of any kind")
+                AccessRow(symbol: "network", tint: .blue,
+                          text: "Network is used only to check for app updates and to open meeting links you click")
+            } header: {
+                Text("Privacy")
+            } footer: {
+                Text("Reveille reads whatever Calendar.app already has synced. Your calendar data never leaves your Mac through Reveille.")
+            }
+
             Section("License") {
                 Text("MIT License — free to use, modify, and distribute.")
                     .font(.caption)
@@ -236,6 +251,26 @@ struct AboutSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// A single line in the About tab's plain-language "what Reveille accesses"
+/// list. Kept factual and checkable rather than marketing.
+private struct AccessRow: View {
+    let symbol: String
+    let tint: Color
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Image(systemName: symbol)
+                .foregroundColor(tint)
+                .frame(width: 18)
+            Text(text)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Spacer(minLength: 0)
+        }
     }
 }
 

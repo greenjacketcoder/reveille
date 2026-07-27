@@ -297,8 +297,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let button = statusItem?.button else { return }
 
         let events = calendarManager?.getTodaysEvents() ?? []
+        let allDay = calendarManager?.getTodaysAllDayEvents() ?? []
+        let tomorrow = calendarManager?.getTomorrowsEvents() ?? []
         let agenda = AgendaView(
             events: events,
+            allDayEvents: allDay,
+            tomorrowEvents: tomorrow,
             onJoin: { [weak self] event in
                 self?.agendaPopover?.performClose(nil)
                 if let url = self?.findMeetingURL(in: event) {
@@ -427,7 +431,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 window.appearance = forced
             }
 
-            if let screen = NSScreen.main {
+            if let screen = self.activeScreen() {
                 window.setFrame(screen.frame, display: true)
             }
 
@@ -484,7 +488,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 window.appearance = forced
             }
 
-            if let screen = NSScreen.main {
+            if let screen = self.activeScreen() {
                 window.setFrame(screen.frame, display: true)
             }
 
@@ -539,7 +543,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // 5 min — away, landing the re-alert well after the meeting starts).
             let key = alertKey(for: event)
             shownAlerts.remove(key)
-            let snooze = TimeInterval(settings.snoozeMinutes * 60)
+            // Smart cap: never snooze past the meeting. If the chosen duration
+            // would land at/after the start, snooze only until 1 min before
+            // start instead, so you still get a heads-up.
+            let chosen = TimeInterval(settings.snoozeMinutes * 60)
+            let untilStart = event.startDate.timeIntervalSinceNow
+            let snooze: TimeInterval
+            if untilStart - chosen < 60 {
+                snooze = max(untilStart - 60, 1)  // 1 min before start, min 1s
+            } else {
+                snooze = chosen
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + snooze) { [weak self] in
                 guard let self = self else { return }
                 // Only re-alert if it's still upcoming and not already re-shown.
@@ -563,6 +577,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSEvent.removeMonitor(monitor)
             alertKeyMonitor = nil
         }
+    }
+
+    /// The screen the user is most likely looking at: the one containing the
+    /// mouse cursor, falling back to the main screen. For a menu-bar app with
+    /// no key window, NSScreen.main can resolve to a display the user isn't
+    /// watching, so a full-screen alert could appear on the wrong monitor.
+    private func activeScreen() -> NSScreen? {
+        let mouse = NSEvent.mouseLocation
+        return NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
     }
 
     /// Installs a local keyDown monitor for the currently showing alert
