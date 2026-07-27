@@ -1,5 +1,6 @@
 import SwiftUI
 import EventKit
+import ServiceManagement
 
 class SettingsManager: ObservableObject {
     @Published var syncInterval: Int {
@@ -18,6 +19,32 @@ class SettingsManager: ObservableObject {
     @Published var snoozeMinutes: Int {
         didSet {
             UserDefaults.standard.set(snoozeMinutes, forKey: "snoozeMinutes")
+        }
+    }
+
+    /// Whether Reveille registers itself to start at login. Backed by
+    /// SMAppService rather than a UserDefault — the system is the source of
+    /// truth (the user can also toggle it in System Settings > General >
+    /// Login Items), so we read/write through it directly.
+    @Published var launchAtLogin: Bool {
+        didSet {
+            guard launchAtLogin != oldValue else { return }
+            do {
+                if launchAtLogin {
+                    if SMAppService.mainApp.status != .enabled {
+                        try SMAppService.mainApp.register()
+                    }
+                } else {
+                    if SMAppService.mainApp.status == .enabled {
+                        try SMAppService.mainApp.unregister()
+                    }
+                }
+            } catch {
+                // Revert the toggle if the system rejected the change, so the
+                // UI keeps reflecting the actual login-item state.
+                NSLog("Reveille: failed to update login item: \(error.localizedDescription)")
+                DispatchQueue.main.async { self.launchAtLogin = (SMAppService.mainApp.status == .enabled) }
+            }
         }
     }
 
@@ -81,6 +108,7 @@ class SettingsManager: ObservableObject {
         self.syncInterval = UserDefaults.standard.object(forKey: "syncInterval") as? Int ?? 60
         self.alertMinutesBefore = UserDefaults.standard.object(forKey: "alertMinutesBefore") as? Int ?? 5
         self.snoozeMinutes = UserDefaults.standard.object(forKey: "snoozeMinutes") as? Int ?? 2
+        self.launchAtLogin = (SMAppService.mainApp.status == .enabled)
         self.soundEnabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true
         self.soundVolume = UserDefaults.standard.object(forKey: "soundVolume") as? Double ?? 0.7
         self.selectedSound = UserDefaults.standard.string(forKey: "selectedSound") ?? "Ping"
@@ -223,6 +251,10 @@ struct GeneralSettingsView: View {
                     Text("Dark").tag("dark")
                 }
                 .pickerStyle(.segmented)
+            }
+
+            Section("General") {
+                Toggle("Launch Reveille at login", isOn: $settings.launchAtLogin)
             }
 
             Section("Syncing") {

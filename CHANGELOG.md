@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Launch at login: an opt-in toggle in Preferences → General to start Reveille automatically when you log in, so a reboot doesn't silently stop meeting alerts. Backed by the system login-items service, so it stays in sync with System Settings.
+- Expanded meeting-provider detection: Webex, GoToMeeting, Whereby, Jitsi, RingCentral, BlueJeans, and Skype (contributed by @Borisserz).
+
 ## [0.1.4] - 2026-07-24
 
 ### Added
