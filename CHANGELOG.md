@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Only one copy of Reveille runs at a time. Launching it again while it's already running no longer leaves two menu bar icons (each instance created its own), duplicate alerts for the same meeting, or two copies competing for the global join shortcut. The duplicate exits itself; automatic updates are unaffected.
+
 ## [0.1.7] - 2026-07-29
 
 ### Added

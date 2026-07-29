@@ -67,6 +67,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
 
+        handleDuplicateInstance()
+
         // Apply the saved appearance preference (System/Light/Dark) app-wide
         // before any windows exist.
         SettingsManager.applyAppearance(settings.appearancePreference)
@@ -125,6 +127,51 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         NSApp.mainMenu = mainMenu
     }
+
+    /// Quits this copy if another instance is already running. Two instances
+    /// mean two menu bar icons, duplicate alerts for the same meeting, and a
+    /// fight over the global join shortcut (the loser's RegisterEventHotKey
+    /// fails and pops "Shortcut Unavailable").
+    ///
+    /// Deliberately careful about Sparkle. Sparkle terminates the running copy
+    /// and *then* relaunches the updated one; if this guard quit instantly on
+    /// seeing any other instance, a slow-exiting outgoing copy could make the
+    /// freshly-updated copy kill itself — "app won't start after updating",
+    /// which is far worse than a duplicate icon. So:
+    ///   - The decision is deferred and RE-CHECKED after a delay. By relaunch
+    ///     time the outgoing copy has exited, so the new copy survives. This
+    ///     works no matter which version is being updated from, which matters
+    ///     because already-released versions contain no cooperating code.
+    ///   - Nothing about Sparkle's own setup is touched.
+    ///   - Ties break on PID (lowest wins) so two simultaneous launches can't
+    ///     both decide to quit.
+    private func handleDuplicateInstance() {
+        let me = NSRunningApplication.current
+        guard let bundleID = me.bundleIdentifier else { return }
+
+        func otherInstances() -> [NSRunningApplication] {
+            NSRunningApplication
+                .runningApplications(withBundleIdentifier: bundleID)
+                .filter { $0.processIdentifier != me.processIdentifier && !$0.isTerminated }
+        }
+
+        guard !otherInstances().isEmpty else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + duplicateInstanceGracePeriod) {
+            let remaining = otherInstances()
+            guard remaining.contains(where: { $0.processIdentifier < me.processIdentifier }) else {
+                // The other copy went away (the Sparkle-relaunch case) or has a
+                // higher PID, so this instance is the one that stays.
+                return
+            }
+            NSApp.terminate(nil)
+        }
+    }
+
+    /// How long to wait before confirming another instance is genuinely still
+    /// there. Must comfortably exceed the window in which Sparkle's outgoing
+    /// copy is still shutting down while the updated copy starts.
+    private var duplicateInstanceGracePeriod: TimeInterval { 3.0 }
 
     // MARK: - Global join shortcut
 
