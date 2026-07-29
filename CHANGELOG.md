@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- "Show alerts on" preference (Preferences → General → Alerts): choose whether full-screen alerts appear on the display with the pointer or always on your primary display.
+
+### Fixed
+- Alerts could appear as a small window stranded in a screen corner instead of covering the display. If macOS reported no active screen — which happens around display sleep/wake, screen lock, and monitor connect/disconnect — the alert window was never given a frame at all, so it kept the panel's intrinsic size at whatever position the system picked. Alerts now always get a frame, with a fallback chain.
+
 ## [0.1.6] - 2026-07-29
 
 ### Added

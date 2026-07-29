@@ -471,8 +471,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 window.appearance = forced
             }
 
-            if let screen = self.activeScreen() {
+            // Always give the window a frame. A nil screen previously meant
+            // no frame was set at all, stranding the panel in a corner at its
+            // intrinsic size instead of covering the display.
+            if let screen = self.alertScreen() {
                 window.setFrame(screen.frame, display: true)
+            } else {
+                window.center()
             }
 
             window.makeKeyAndOrderFront(nil)
@@ -528,8 +533,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 window.appearance = forced
             }
 
-            if let screen = self.activeScreen() {
+            // Always give the window a frame. A nil screen previously meant
+            // no frame was set at all, stranding the panel in a corner at its
+            // intrinsic size instead of covering the display.
+            if let screen = self.alertScreen() {
                 window.setFrame(screen.frame, display: true)
+            } else {
+                window.center()
             }
 
             window.makeKeyAndOrderFront(nil)
@@ -611,13 +621,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// The screen the user is most likely looking at: the one containing the
-    /// mouse cursor, falling back to the main screen. For a menu-bar app with
-    /// no key window, NSScreen.main can resolve to a display the user isn't
-    /// watching, so a full-screen alert could appear on the wrong monitor.
-    private func activeScreen() -> NSScreen? {
+    /// Which screen a full-screen alert should cover, honoring the user's
+    /// "Show alerts on" preference.
+    ///
+    /// The fallback chain matters: NSScreen.main is documented as nil-able
+    /// (no active screen — display sleep/wake, lock, reconfiguration), and
+    /// callers MUST always get a frame. Previously a nil here meant the window
+    /// was never sized or positioned at all, so it kept the panel's intrinsic
+    /// 920x570 size at AppKit's default origin and appeared stranded in a
+    /// corner instead of covering the display.
+    private func alertScreen() -> NSScreen? {
+        let preferPrimary = settings.alertDisplayPreference == "primary"
+
+        if preferPrimary, let primary = NSScreen.screens.first {
+            return primary
+        }
+
         let mouse = NSEvent.mouseLocation
-        return NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main
+        if let underPointer = NSScreen.screens.first(where: { NSMouseInRect(mouse, $0.frame, false) }) {
+            return underPointer
+        }
+
+        return NSScreen.main ?? NSScreen.screens.first
     }
 
     /// Installs a local keyDown monitor for the currently showing alert

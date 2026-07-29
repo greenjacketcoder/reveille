@@ -31,6 +31,14 @@ class SettingsManager: ObservableObject {
         }
     }
 
+    /// Which display full-screen alerts appear on: "active" (the one with the
+    /// pointer) or "primary".
+    @Published var alertDisplayPreference: String {
+        didSet {
+            UserDefaults.standard.set(alertDisplayPreference, forKey: "alertDisplayPreference")
+        }
+    }
+
     /// Opt-in system-wide shortcut that joins the current or next meeting.
     /// Off by default — a global hotkey is intrusive enough that it should be
     /// a deliberate choice.
@@ -136,6 +144,7 @@ class SettingsManager: ObservableObject {
         self.alertMinutesBefore = UserDefaults.standard.object(forKey: "alertMinutesBefore") as? Int ?? 5
         self.snoozeMinutes = UserDefaults.standard.object(forKey: "snoozeMinutes") as? Int ?? 2
         self.openInNativeApp = UserDefaults.standard.object(forKey: "openInNativeApp") as? Bool ?? false
+        self.alertDisplayPreference = UserDefaults.standard.string(forKey: "alertDisplayPreference") ?? "active"
         self.joinHotKeyEnabled = UserDefaults.standard.object(forKey: "joinHotKeyEnabled") as? Bool ?? false
         self.joinShortcutID = UserDefaults.standard.string(forKey: "joinShortcutID") ?? JoinShortcut.default.id
         self.launchAtLogin = (SMAppService.mainApp.status == .enabled)
@@ -341,7 +350,7 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Section("Alerts") {
+            Section {
                 Picker("Alert before meeting", selection: $settings.alertMinutesBefore) {
                     Text("1 minute").tag(1)
                     Text("3 minutes").tag(3)
@@ -356,6 +365,15 @@ struct GeneralSettingsView: View {
                     Text("10 minutes").tag(10)
                     Text("15 minutes").tag(15)
                 }
+
+                Picker("Show alerts on", selection: $settings.alertDisplayPreference) {
+                    Text("Display with the pointer").tag("active")
+                    Text("Primary display").tag("primary")
+                }
+            } header: {
+                Text("Alerts")
+            } footer: {
+                Text("Alerts cover the whole display, with the meeting panel centered.")
             }
 
             Section {
