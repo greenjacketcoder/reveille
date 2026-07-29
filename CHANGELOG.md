@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - "Open meetings in" preference (Preferences → General → Joining): join in the provider's desktop app instead of a browser tab. Supports Zoom, Microsoft Teams, and Jitsi; anything else — or a link whose desktop app isn't installed — opens in your browser as before.
+- Optional global shortcut to join (Preferences → General → Joining): press it from any app to join the meeting that's running now, or the next one with a link. Choose from ⌃⌥⌘J / M / K / ↩. Off by default, and if nothing is joinable it opens the agenda instead so the press always does something visible. Requires no extra system permissions.
 
 ## [0.1.5] - 2026-07-27
 

@@ -33,6 +33,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// The menu-bar agenda dropdown, shown on left-click of the status item.
     var agendaPopover: NSPopover?
 
+    /// Owns the optional system-wide "join now" shortcut.
+    private let joinHotKey = HotKeyManager()
+
     /// Debug-screenshot only: force light/dark on alert windows so both
     /// schemes can be captured regardless of the system appearance.
     var debugForcedAppearance: NSAppearance?
@@ -87,9 +90,64 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(joinHotKeyChanged),
+            name: .joinHotKeyChanged,
+            object: nil
+        )
+
         startMenuBarTimer()
+        refreshJoinHotKey()
 
         handleDebugScreenshotArgument()
+    }
+
+    // MARK: - Global join shortcut
+
+    @objc private func joinHotKeyChanged() {
+        refreshJoinHotKey()
+    }
+
+    /// Registers or tears down the global shortcut to match the current
+    /// preference. If the system refuses the combination (another app already
+    /// owns it), tell the user rather than leaving a dead shortcut.
+    private func refreshJoinHotKey() {
+        guard settings.joinHotKeyEnabled else {
+            joinHotKey.unregister()
+            return
+        }
+
+        let shortcut = JoinShortcut.named(settings.joinShortcutID)
+        let ok = joinHotKey.register(keyCode: shortcut.keyCode, modifiers: shortcut.modifiers) { [weak self] in
+            self?.joinCurrentOrNextMeeting()
+        }
+
+        if !ok {
+            let alert = NSAlert()
+            alert.messageText = "Shortcut Unavailable"
+            alert.informativeText = "\(shortcut.label) is already in use by another app. Pick a different shortcut in Preferences → General."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+
+    /// Joins the meeting that's running now, or the soonest upcoming one with a
+    /// link. If nothing is joinable, shows the agenda popover instead — that
+    /// gives visible feedback and useful context rather than doing nothing.
+    private func joinCurrentOrNextMeeting() {
+        let events = calendarManager?.getTodaysEvents() ?? []
+        let windows = events.map {
+            JoinTarget.Window(start: $0.startDate, end: $0.endDate, hasLink: findMeetingURL(in: $0) != nil)
+        }
+
+        if let index = JoinTarget.index(in: windows, now: Date()),
+           let url = findMeetingURL(in: events[index]) {
+            openMeeting(url)
+        } else {
+            showAgendaPopover()
+        }
     }
 
     // MARK: - Menu bar countdown

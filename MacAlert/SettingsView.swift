@@ -31,6 +31,24 @@ class SettingsManager: ObservableObject {
         }
     }
 
+    /// Opt-in system-wide shortcut that joins the current or next meeting.
+    /// Off by default — a global hotkey is intrusive enough that it should be
+    /// a deliberate choice.
+    @Published var joinHotKeyEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(joinHotKeyEnabled, forKey: "joinHotKeyEnabled")
+            NotificationCenter.default.post(name: .joinHotKeyChanged, object: nil)
+        }
+    }
+
+    /// Which preset shortcut is used (see JoinShortcut.all).
+    @Published var joinShortcutID: String {
+        didSet {
+            UserDefaults.standard.set(joinShortcutID, forKey: "joinShortcutID")
+            NotificationCenter.default.post(name: .joinHotKeyChanged, object: nil)
+        }
+    }
+
     /// Whether Reveille registers itself to start at login. Backed by
     /// SMAppService rather than a UserDefault — the system is the source of
     /// truth (the user can also toggle it in System Settings > General >
@@ -118,6 +136,8 @@ class SettingsManager: ObservableObject {
         self.alertMinutesBefore = UserDefaults.standard.object(forKey: "alertMinutesBefore") as? Int ?? 5
         self.snoozeMinutes = UserDefaults.standard.object(forKey: "snoozeMinutes") as? Int ?? 2
         self.openInNativeApp = UserDefaults.standard.object(forKey: "openInNativeApp") as? Bool ?? false
+        self.joinHotKeyEnabled = UserDefaults.standard.object(forKey: "joinHotKeyEnabled") as? Bool ?? false
+        self.joinShortcutID = UserDefaults.standard.string(forKey: "joinShortcutID") ?? JoinShortcut.default.id
         self.launchAtLogin = (SMAppService.mainApp.status == .enabled)
         self.soundEnabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true
         self.soundVolume = UserDefaults.standard.object(forKey: "soundVolume") as? Double ?? 0.7
@@ -133,6 +153,10 @@ extension Notification.Name {
     /// Posted when the menu-bar display preference changes, so the
     /// AppDelegate can refresh the status item immediately.
     static let menuBarDisplayChanged = Notification.Name("menuBarDisplayChanged")
+
+    /// Posted when the global join shortcut is enabled/disabled or changed,
+    /// so the AppDelegate can re-register it.
+    static let joinHotKeyChanged = Notification.Name("joinHotKeyChanged")
 }
 
 struct SettingsView: View {
@@ -340,10 +364,20 @@ struct GeneralSettingsView: View {
                     Text("Desktop app").tag(true)
                 }
                 .pickerStyle(.inline)
+
+                Toggle("Global shortcut to join", isOn: $settings.joinHotKeyEnabled)
+
+                if settings.joinHotKeyEnabled {
+                    Picker("Shortcut", selection: $settings.joinShortcutID) {
+                        ForEach(JoinShortcut.all) { shortcut in
+                            Text(shortcut.label).tag(shortcut.id)
+                        }
+                    }
+                }
             } header: {
                 Text("Joining")
             } footer: {
-                Text("Desktop app applies to Zoom, Microsoft Teams, and Jitsi. Other providers, or links without the app installed, always open in your browser.")
+                Text("Desktop app applies to Zoom, Microsoft Teams, and Jitsi. Other providers, or links without the app installed, always open in your browser.\n\nThe global shortcut joins the meeting that's running now, or the next one with a link — from any app.")
             }
 
             Section {
