@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-07-29
+
 ### Added
 - "Open meetings in" preference (Preferences → General → Joining): join in the provider's desktop app instead of a browser tab. Supports Zoom, Microsoft Teams, and Jitsi; anything else — or a link whose desktop app isn't installed — opens in your browser as before.
 - Optional global shortcut to join (Preferences → General → Joining): press it from any app to join the meeting that's running now, or the next one with a link. Choose from ⌃⌥⌘J / M / K / ↩. Off by default, and if nothing is joinable it opens the agenda instead so the press always does something visible. Requires no extra system permissions.
+
+### Changed
+- Internal: the recurring-event de-duplication key, menu-bar countdown formatting, and snooze timing now live in the unit-tested support package, so their behaviour is verified in CI on every change.
+
+### Removed
+- Deleted an unused leftover menu-bar implementation file from the original project.
 
 ## [0.1.5] - 2026-07-27
 
@@ -87,7 +95,8 @@ Initial public release.
 - Automatic updates via Sparkle, with EdDSA-signed releases
 - Release automation via GitHub Actions: tag push builds, packages, and Sparkle-signs a `.dmg`, updates the appcast, and publishes a GitHub Release
 
-[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/greenjacketcoder/reveille/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/greenjacketcoder/reveille/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/greenjacketcoder/reveille/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/greenjacketcoder/reveille/compare/v0.1.2...v0.1.3
