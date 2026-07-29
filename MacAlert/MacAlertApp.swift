@@ -72,8 +72,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         SettingsManager.applyAppearance(settings.appearancePreference)
 
         setupMenuBar()
+        installMinimalMainMenu()
 
-        calendarManager = CalendarManager()
+        calendarManager = CalendarManager.shared
         requestCalendarAccess()
 
         NotificationCenter.default.addObserver(
@@ -101,6 +102,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         refreshJoinHotKey()
 
         handleDebugScreenshotArgument()
+    }
+
+    /// Replaces SwiftUI's default application menu (Edit / View / Window /
+    /// Help — all meaningless for a menu-bar-only app) with just an app menu.
+    /// Showing an alert activates the app, at which point macOS displays this
+    /// menu bar; trimming it to the essentials keeps that far less intrusive.
+    private func installMinimalMainMenu() {
+        let mainMenu = NSMenu()
+
+        let appMenuItem = NSMenuItem()
+        mainMenu.addItem(appMenuItem)
+
+        let appMenu = NSMenu()
+        let prefs = NSMenuItem(title: "Preferences…", action: #selector(showPreferences), keyEquivalent: ",")
+        prefs.target = self
+        appMenu.addItem(prefs)
+        appMenu.addItem(.separator())
+        let quitItem = NSMenuItem(title: "Quit Reveille", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(quitItem)
+        appMenuItem.submenu = appMenu
+
+        NSApp.mainMenu = mainMenu
     }
 
     // MARK: - Global join shortcut
