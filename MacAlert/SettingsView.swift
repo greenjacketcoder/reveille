@@ -563,27 +563,66 @@ struct MeetingLinksView: View {
 }
 
 struct CalendarsSettingsView: View {
-    @State private var calendars: [EKCalendar] = []
+    /// A calendar reduced to what the row needs, so the state enum can be
+    /// Equatable and the EventKit objects don't outlive the fetch.
+    private struct Row: Identifiable, Equatable {
+        let id: String
+        let title: String
+        let source: String
+        let color: Color
+    }
+
+    /// Explicit states. The previous version only checked `calendars.isEmpty`,
+    /// so *any* empty result — denied access, add-events-only access, or simply
+    /// no enabled calendars — rendered as "Loading calendars…" forever.
+    private enum LoadState: Equatable {
+        case loading
+        case ready([Row])
+        case noAccess(CalendarManager.Access)
+    }
+
+    @State private var state: LoadState = .loading
 
     var body: some View {
         Form {
-            Section("Connected Calendars") {
-                if calendars.isEmpty {
+            Section {
+                switch state {
+                case .loading:
                     Label("Loading calendars…", systemImage: "arrow.triangle.2.circlepath")
                         .foregroundColor(.secondary)
-                } else {
-                    ForEach(calendars, id: \.calendarIdentifier) { calendar in
+
+                case .ready(let rows) where rows.isEmpty:
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("No calendars found", systemImage: "calendar.badge.exclamationmark")
+                        Text("Reveille has access, but no calendars are enabled. Open Calendar.app and enable at least one.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                case .ready(let rows):
+                    ForEach(rows) { row in
                         HStack {
                             Circle()
-                                .fill(Color(calendar.color))
+                                .fill(row.color)
                                 .frame(width: 12, height: 12)
-                            Text(calendar.title)
+                            Text(row.title)
                             Spacer()
-                            Text(calendar.source.title)
+                            Text(row.source)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                     }
+
+                case .noAccess(let access):
+                    noAccessView(access)
+                }
+            } header: {
+                HStack {
+                    Text("Connected Calendars")
+                    Spacer()
+                    Button("Refresh") { load() }
+                        .buttonStyle(.link)
+                        .font(.caption)
                 }
             }
 
@@ -614,13 +653,70 @@ struct CalendarsSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear {
-            loadCalendars()
+        .onAppear { load() }
+    }
+
+    @ViewBuilder
+    private func noAccessView(_ access: CalendarManager.Access) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            switch access {
+            case .writeOnly:
+                Label("Add-events-only access", systemImage: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                Text("Reveille can create events but can't read them, so meeting alerts won't fire. Choose Full Access for Reveille in System Settings.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            case .denied:
+                Label("Calendar access denied", systemImage: "lock.fill")
+                    .foregroundColor(.orange)
+                Text("Reveille needs calendar access to show meeting alerts.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            case .notDetermined:
+                Label("Calendar access not granted yet", systemImage: "questionmark.circle")
+                Text("Quit and relaunch Reveille to be prompted for access.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            default:
+                Label("Calendar access unavailable", systemImage: "exclamationmark.triangle")
+                Text("Reveille couldn't determine its calendar access level.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Button("Open Privacy Settings") {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            .padding(.top, 2)
         }
     }
 
-    private func loadCalendars() {
-        let manager = CalendarManager()
-        calendars = manager.getCalendars()
+    /// Reads through the app's shared (already-authorized) store rather than a
+    /// throwaway one, checks access explicitly so a read-blocked state can't
+    /// masquerade as "loading", and fetches off the main thread.
+    private func load() {
+        state = .loading
+
+        let access = CalendarManager.shared.eventAccess
+        guard access == .full else {
+            state = .noAccess(access)
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let rows = CalendarManager.shared.getCalendars().map { cal in
+                Row(
+                    id: cal.calendarIdentifier,
+                    title: cal.title,
+                    source: cal.source?.title ?? "Unknown",
+                    color: Color(cal.color)
+                )
+            }
+            DispatchQueue.main.async {
+                state = .ready(rows)
+            }
+        }
     }
 }

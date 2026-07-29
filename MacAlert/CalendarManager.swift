@@ -5,6 +5,45 @@ import AppKit
 class CalendarManager {
     private let eventStore = EKEventStore()
 
+    /// Shared instance so views reuse the app's authorized store instead of
+    /// creating throwaway EKEventStores (which may not be ready to read, and
+    /// each of which carries its own EventKit overhead).
+    static let shared = CalendarManager()
+
+    /// What level of calendar access the app actually has. Needed because
+    /// write-only access still lets EventKit calls succeed while returning
+    /// nothing to read — which looks identical to "still loading" unless the
+    /// UI checks explicitly.
+    enum Access: Equatable {
+        case notDetermined
+        case denied
+        /// "Add Events Only" — Reveille can create events but cannot read
+        /// them, so alerts cannot work at all in this state.
+        case writeOnly
+        case full
+        case unknown
+    }
+
+    var eventAccess: Access {
+        let status = EKEventStore.authorizationStatus(for: .event)
+        if #available(macOS 14.0, *) {
+            switch status {
+            case .notDetermined: return .notDetermined
+            case .restricted, .denied: return .denied
+            case .writeOnly: return .writeOnly
+            case .fullAccess: return .full
+            @unknown default: return .unknown
+            }
+        } else {
+            switch status {
+            case .notDetermined: return .notDetermined
+            case .restricted, .denied: return .denied
+            case .authorized: return .full
+            @unknown default: return .unknown
+            }
+        }
+    }
+
     func requestAccess(completion: @escaping (Bool) -> Void) {
         if #available(macOS 14.0, *) {
             eventStore.requestFullAccessToEvents { granted, error in
