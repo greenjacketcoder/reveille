@@ -22,6 +22,15 @@ class SettingsManager: ObservableObject {
         }
     }
 
+    /// Whether Join opens the provider's desktop app (when one exists and is
+    /// installed) instead of the browser. Falls back to the browser
+    /// automatically when there's no native equivalent.
+    @Published var openInNativeApp: Bool {
+        didSet {
+            UserDefaults.standard.set(openInNativeApp, forKey: "openInNativeApp")
+        }
+    }
+
     /// Whether Reveille registers itself to start at login. Backed by
     /// SMAppService rather than a UserDefault — the system is the source of
     /// truth (the user can also toggle it in System Settings > General >
@@ -108,6 +117,7 @@ class SettingsManager: ObservableObject {
         self.syncInterval = UserDefaults.standard.object(forKey: "syncInterval") as? Int ?? 60
         self.alertMinutesBefore = UserDefaults.standard.object(forKey: "alertMinutesBefore") as? Int ?? 5
         self.snoozeMinutes = UserDefaults.standard.object(forKey: "snoozeMinutes") as? Int ?? 2
+        self.openInNativeApp = UserDefaults.standard.object(forKey: "openInNativeApp") as? Bool ?? false
         self.launchAtLogin = (SMAppService.mainApp.status == .enabled)
         self.soundEnabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true
         self.soundVolume = UserDefaults.standard.object(forKey: "soundVolume") as? Double ?? 0.7
@@ -322,6 +332,18 @@ struct GeneralSettingsView: View {
                     Text("10 minutes").tag(10)
                     Text("15 minutes").tag(15)
                 }
+            }
+
+            Section {
+                Picker("Open meetings in", selection: $settings.openInNativeApp) {
+                    Text("Browser").tag(false)
+                    Text("Desktop app").tag(true)
+                }
+                .pickerStyle(.inline)
+            } header: {
+                Text("Joining")
+            } footer: {
+                Text("Desktop app applies to Zoom, Microsoft Teams, and Jitsi. Other providers, or links without the app installed, always open in your browser.")
             }
 
             Section {

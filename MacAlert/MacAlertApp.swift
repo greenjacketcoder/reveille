@@ -292,7 +292,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             onJoin: { [weak self] event in
                 self?.agendaPopover?.performClose(nil)
                 if let url = self?.findMeetingURL(in: event) {
-                    NSWorkspace.shared.open(url)
+                    self?.openMeeting(url)
                 }
             },
             onQuickAdd: { [weak self] in
@@ -515,7 +515,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         switch action {
         case .join:
             if let url = findMeetingURL(in: event) {
-                NSWorkspace.shared.open(url)
+                openMeeting(url)
             }
             closeAlert()
         case .snooze:
@@ -600,6 +600,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         return nil
+    }
+
+    /// Opens an already-validated meeting link, honoring the "open meetings in"
+    /// preference. Falls back to the browser whenever the desktop route isn't
+    /// viable: the user prefers the browser, the provider has no native scheme,
+    /// or nothing installed claims that scheme. Without that last check,
+    /// choosing "Desktop app" without the client installed would make Join
+    /// appear to do nothing.
+    func openMeeting(_ url: URL) {
+        if settings.openInNativeApp,
+           let native = NativeAppLink.nativeURL(for: url),
+           NSWorkspace.shared.urlForApplication(toOpen: native) != nil {
+            NSWorkspace.shared.open(native)
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 
     func handleReminderAction(_ action: AlertAction, for reminder: EKReminder) {
