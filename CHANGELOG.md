@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-07-29
+
 ### Fixed
 - Only one copy of Reveille runs at a time. Launching it again while it's already running no longer leaves two menu bar icons (each instance created its own), duplicate alerts for the same meeting, or two copies competing for the global join shortcut. The duplicate exits itself; automatic updates are unaffected.
 
@@ -108,7 +110,8 @@ Initial public release.
 - Automatic updates via Sparkle, with EdDSA-signed releases
 - Release automation via GitHub Actions: tag push builds, packages, and Sparkle-signs a `.dmg`, updates the appcast, and publishes a GitHub Release
 
-[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/greenjacketcoder/reveille/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/greenjacketcoder/reveille/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/greenjacketcoder/reveille/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/greenjacketcoder/reveille/compare/v0.1.4...v0.1.5
