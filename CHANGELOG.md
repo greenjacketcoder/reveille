@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-07-29
+
 ### Added
 - "Show alerts on" preference (Preferences → General → Alerts): choose whether full-screen alerts appear on the display with the pointer or always on your primary display.
 
 ### Fixed
 - Alerts could appear as a small window stranded in a screen corner instead of covering the display. If macOS reported no active screen — which happens around display sleep/wake, screen lock, and monitor connect/disconnect — the alert window was never given a frame at all, so it kept the panel's intrinsic size at whatever position the system picked. Alerts now always get a frame, with a fallback chain.
+- The Calendars tab in Preferences could sit on "Loading calendars…" indefinitely. It now reports what's actually happening: your calendar list, "no calendars enabled", or the specific access problem — with an "Open Privacy Settings" button and a Refresh action. It calls out macOS's "Add Events Only" access in particular, which silently prevents meeting alerts from working at all.
+- Showing an alert no longer adds Edit / View / Window / Help menus to the menu bar. Activating the app for an alert makes macOS display its application menu; that menu is now trimmed to just the app menu.
 
 ## [0.1.6] - 2026-07-29
 
@@ -101,7 +105,8 @@ Initial public release.
 - Automatic updates via Sparkle, with EdDSA-signed releases
 - Release automation via GitHub Actions: tag push builds, packages, and Sparkle-signs a `.dmg`, updates the appcast, and publishes a GitHub Release
 
-[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/greenjacketcoder/reveille/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/greenjacketcoder/reveille/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/greenjacketcoder/reveille/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/greenjacketcoder/reveille/compare/v0.1.3...v0.1.4
