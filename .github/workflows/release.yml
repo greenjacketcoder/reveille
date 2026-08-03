@@ -42,10 +42,28 @@ jobs:
       # this step for real codesign + notarytool submission before packaging.
       - name: Build (Release, ad-hoc signed)
         run: |
+          # CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO keeps Xcode from injecting
+          # com.apple.security.get-task-allow into the shipped build. That
+          # entitlement lets any process running as the same user attach a
+          # debugger and read/modify the app's memory - which for Reveille
+          # means live calendar contents - and it undermines the hardened
+          # runtime we otherwise enable. Debug builds are unaffected, so
+          # local debugging still works.
           xcodebuild build \
             -project MacAlert.xcodeproj -scheme MacAlert -configuration Release \
             -derivedDataPath build \
-            CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=YES
+            CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
+
+      - name: Verify shipped entitlements contain no debug entitlement
+        run: |
+          APP="build/Build/Products/Release/Reveille.app"
+          if codesign -d --entitlements - --xml "$APP" 2>/dev/null | grep -q "get-task-allow"; then
+            echo "::error::get-task-allow present in the release build - refusing to ship a debuggable app."
+            exit 1
+          fi
+          echo "OK: no get-task-allow in the shipped app."
+          codesign -dv "$APP" 2>&1 | grep -E "flags" || true
 
       - name: Read version from built app + verify it matches the tag
         id: version

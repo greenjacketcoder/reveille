@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Release builds no longer ship the `get-task-allow` debug entitlement, which allowed any process running as the same user to attach a debugger to Reveille and read or modify its memory — including calendar data held in memory. The release pipeline now also fails outright if that entitlement ever reappears in a build.
+
 ## [0.1.8] - 2026-07-29
 
 ### Fixed
