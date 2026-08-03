@@ -24,16 +24,18 @@
 	<true/>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Reveille needs access to your calendars to show meeting reminders.</string>
-	<key>NSRemindersUsageDescription</key>
-	<string>Reveille needs access to your reminders to show alerts for upcoming tasks.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Reveille needs access to your reminders to show alerts for upcoming tasks.</string>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+	<key>SUEnableSystemProfiling</key>
+	<false/>
 	<key>SUFeedURL</key>
 	<string>https://raw.githubusercontent.com/greenjacketcoder/reveille/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>b9xDtavW2+L+gmxsrQe2N4n7H0SaHX7cVmsmUn2aCEA=</string>
-	<key>SUEnableSystemProfiling</key>
-	<false/>
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
 </dict>

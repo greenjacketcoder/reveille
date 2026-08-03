@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-07-29
+
+### Fixed
+- **Automatic updates now actually install.** Reveille could check for and download updates, but never applied them — every release so far has effectively been manual-download-only. Sandboxed apps need Sparkle's installer helper enabled, which was missing, so the download completed and then silently went nowhere.
+
+### Security
+- Release builds no longer ship the `get-task-allow` debug entitlement, which allowed any process running as the same user to attach a debugger to Reveille and read or modify its memory — including calendar data held in memory. The release pipeline now fails outright if that entitlement ever reappears in a build.
+
 ### Security
 - Release builds no longer ship the `get-task-allow` debug entitlement, which allowed any process running as the same user to attach a debugger to Reveille and read or modify its memory — including calendar data held in memory. The release pipeline now also fails outright if that entitlement ever reappears in a build.
 
@@ -113,7 +121,8 @@ Initial public release.
 - Automatic updates via Sparkle, with EdDSA-signed releases
 - Release automation via GitHub Actions: tag push builds, packages, and Sparkle-signs a `.dmg`, updates the appcast, and publishes a GitHub Release
 
-[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/greenjacketcoder/reveille/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/greenjacketcoder/reveille/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/greenjacketcoder/reveille/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/greenjacketcoder/reveille/compare/v0.1.5...v0.1.6
