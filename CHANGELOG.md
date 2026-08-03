@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Automatic updates now actually install.** Reveille could check for and download updates, but never applied them — every release so far has effectively been manual-download-only. Sandboxed apps need Sparkle's installer helper enabled, which was missing, so the download completed and then silently went nowhere.
 
+  **If you're on 0.1.8 or earlier, please download this release manually — one last time.** The fix has to be present in the copy doing the updating, so older versions can't pull it in themselves. From 0.1.9 onward, updates install on their own.
+
 ### Security
 - Release builds no longer ship the `get-task-allow` debug entitlement, which allowed any process running as the same user to attach a debugger to Reveille and read or modify its memory — including calendar data held in memory. The release pipeline now fails outright if that entitlement ever reappears in a build.
 
