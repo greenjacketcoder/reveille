@@ -13,7 +13,7 @@ For released changes, see [CHANGELOG.md](CHANGELOG.md).
 - Menu-bar agenda dropdown — today's meetings with one-click join
 - Host-allowlisted meeting-link detection (Zoom, Google Meet, Teams, Discord, Slack, FaceTime, Webex, GoToMeeting, Whereby, Jitsi, RingCentral, BlueJeans, Skype)
 - Configurable, precise snooze
-- Automatic updates (Sparkle, EdDSA-signed), notarization pending
+- Automatic updates (Sparkle, EdDSA-signed), verified installing end to end
 
 ## Next
 
@@ -23,7 +23,6 @@ In rough priority order (see linked issues):
 2. **Global hotkey to join the next meeting** ([#8](https://github.com/greenjacketcoder/reveille/issues/8)) — one keystroke from anywhere.
 3. **Open in native app vs. browser** ([#9](https://github.com/greenjacketcoder/reveille/issues/9)) — join Zoom/Teams in their app if preferred.
 4. **Configurable menu-bar display** ([#10](https://github.com/greenjacketcoder/reveille/issues/10)) — icon-only / title / countdown.
-5. **Notarization** — Apple Developer Program enrollment, so downloads launch without the Gatekeeper workaround.
 
 ## Considering
 
@@ -40,6 +39,7 @@ These conflict with Reveille's core positioning (local-only, no accounts, no tel
 - **Third-party task integrations requiring accounts/API tokens** (e.g. Todoist) — would introduce outbound calls to a third party and account linking. Apple Reminders is supported precisely because it stays on-device.
 - **Direct Google Calendar (or other cloud) integration** — Calendar.app already syncs every major provider on-device, without Reveille needing OAuth or network access to your calendar data.
 - **Usage analytics / meeting stats tracking** — this is telemetry by another name, even kept local.
+- **Notarization / Developer ID signing** — requires a paid Apple Developer account. Reveille is free and unfunded, so releases stay ad-hoc signed and the one-time Gatekeeper approval stays part of installing. Download integrity is covered instead by a published SHA-256 per release, and updates by EdDSA signature verification.
 
 ## Requests
 

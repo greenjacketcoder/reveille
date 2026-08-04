@@ -37,9 +37,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      # Not notarized yet (pending Apple Developer Program enrollment), so
-      # this is ad-hoc signed for now. Once a Developer ID cert exists, swap
-      # this step for real codesign + notarytool submission before packaging.
+      # Ad-hoc signed by design: notarization needs a paid Apple Developer
+      # account this project doesn't have. Consequences are accepted and
+      # compensated for - the DMG's SHA-256 is published in the release notes
+      # so the first download can be verified, and updates are EdDSA-verified
+      # by Sparkle regardless of Gatekeeper.
       - name: Build (Release, ad-hoc signed)
         run: |
           # CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO keeps Xcode from injecting
@@ -102,6 +104,24 @@ jobs:
         run: |
           codesign --verify --deep --strict --verbose=2 "staging/Reveille.app"
           hdiutil verify "Reveille-${{ steps.version.outputs.short }}.dmg"
+
+      - name: Publish the DMG checksum for independent verification
+        run: |
+          DMG="Reveille-${{ steps.version.outputs.short }}.dmg"
+          SUM=$(shasum -a 256 "$DMG" | cut -d' ' -f1)
+          echo "SHA-256: $SUM"
+          {
+            echo ""
+            echo "### Verify this download"
+            echo ""
+            echo "Reveille is not notarized (no paid Apple Developer account), so there is no"
+            echo "Apple signature to check. Confirm the download instead:"
+            echo ""
+            echo '```'
+            echo "shasum -a 256 $DMG"
+            echo "$SUM"
+            echo '```'
+          } >> release_notes.md
 
       - name: Download Sparkle CLI tools (pinned to the version this app embeds)
         run: |

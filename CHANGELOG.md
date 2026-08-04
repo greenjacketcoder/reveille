@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-08-03
+
+### Security
+- Each release now publishes the SHA-256 of its `.dmg` in the release notes, so a fresh download can be verified independently. Reveille isn't notarized, so there's no Apple signature to check — this gives you something that can be checked. (Updates after the first install were already verified by EdDSA signature.)
+- Installation instructions now recommend approving Reveille via right-click → Open, or removing just its quarantine flag, instead of `xattr -cr` — which recursively strips all extended attributes and is a broader change than necessary.
+
+### Changed
+- Documentation no longer implies notarization is coming. It requires a paid Apple Developer account this project doesn't have, so the one-time Gatekeeper approval is a permanent part of installing, and that's now stated plainly along with what compensates for it.
+
 ## [0.1.9] - 2026-07-29
 
 ### Fixed
@@ -123,7 +132,8 @@ Initial public release.
 - Automatic updates via Sparkle, with EdDSA-signed releases
 - Release automation via GitHub Actions: tag push builds, packages, and Sparkle-signs a `.dmg`, updates the appcast, and publishes a GitHub Release
 
-[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/greenjacketcoder/reveille/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/greenjacketcoder/reveille/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/greenjacketcoder/reveille/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/greenjacketcoder/reveille/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/greenjacketcoder/reveille/compare/v0.1.6...v0.1.7

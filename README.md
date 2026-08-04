@@ -70,16 +70,24 @@ Reveille lives in your menu bar, watches your calendars, and puts a full-screen,
 
 Grab the latest `.dmg` from [Releases](https://github.com/greenjacketcoder/reveille/releases/latest), open it, and drag Reveille into Applications.
 
-**Important — Reveille isn't notarized yet** (pending Apple Developer Program enrollment), so macOS Gatekeeper will block the first launch. Downloaded/installed copies get a quarantine flag that a plain double-click won't get past. Fix it once with either of these:
+**Important — Reveille isn't notarized.** Notarization requires a paid Apple Developer account, which this project doesn't have and isn't planning to buy. macOS Gatekeeper therefore blocks the first launch of a downloaded copy. Clear it once:
 
-- **Right-click (Control-click) Reveille.app → Open**, then click **Open** in the dialog that appears. On some macOS versions this shows an unhelpful "is damaged and can't be opened" message with no Open option — if you hit that, use the Terminal command below instead.
-- **Terminal (most reliable):**
+- **Right-click (Control-click) Reveille.app → Open**, then click **Open** in the dialog. Prefer this route — it approves this one app and leaves everything else alone.
+- If macOS instead shows "is damaged and can't be opened" with no Open option, remove the quarantine flag from Reveille specifically:
   ```bash
-  xattr -cr /Applications/Reveille.app
+  xattr -d com.apple.quarantine /Applications/Reveille.app
   ```
-  This clears the quarantine flag from the app you just installed. After that, it opens normally — no need to repeat this on future launches or updates.
+  (Avoid `xattr -cr`, which recursively strips *all* extended attributes — a much broader change than you need.)
 
-Once notarization is set up, this step goes away entirely.
+After that it opens normally, including after updates.
+
+**Verify your download.** Since there's no Apple signature to check, every release publishes the SHA-256 of its `.dmg` in the [release notes](https://github.com/greenjacketcoder/reveille/releases/latest). Compare before installing:
+
+```bash
+shasum -a 256 ~/Downloads/Reveille-*.dmg
+```
+
+Updates after the first install are verified independently of Gatekeeper: Reveille checks an EdDSA signature on every update before applying it.
 
 **Building from source instead:**
 
